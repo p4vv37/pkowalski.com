@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostList from '../components/PostList.astro';
+import { publishedPosts } from '../lib/content';
+const posts = await publishedPosts();
+---
+<BaseLayout title="Work & notes" description="Projects, experiments and notes on machine learning, computer graphics and tool development by Paweł Kowalski.">
+  <section class="archive-page shell">
+    <div class="page-eyebrow mono">The archive / {posts.length} entries</div>
+    <h1 class="page-title">Work & notes<span class="accent">.</span></h1>
+    <p class="page-intro">Projects and experiments in machine learning, computer graphics and tool development.</p>
+    <PostList posts={posts} searchable />
+  </section>
+</BaseLayout>

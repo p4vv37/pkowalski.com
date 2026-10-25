@@ -1,0 +1,16 @@
+---
+import { href, postHref, dateLabel, type Post } from '../lib/content';
+interface Props { post: Post; index?: number; }
+const { post, index = 0 } = Astro.props;
+---
+<article class="post-card">
+  <a class="card-image" href={postHref(post)} tabindex="-1" aria-hidden="true">
+    {post.data.image ? <img src={href(post.data.image)} alt="" loading={index === 0 ? 'eager' : 'lazy'} decoding="async" /> : <span class="image-fallback" aria-hidden="true">{'{'} pk {'}'}</span>}
+    <span class="image-index mono" aria-hidden="true">0{index + 1}</span>
+    <span class="image-arrow" aria-hidden="true">↗</span>
+  </a>
+  <div class="card-meta mono"><time datetime={post.data.date}>{dateLabel(post.data.date)}</time><span>Project / notes</span></div>
+  <h3><a href={postHref(post)}>{post.data.title}</a></h3>
+  {post.data.draft && <span class="draft-label mono">Draft</span>}
+  <p>{post.data.description}</p>
+</article>

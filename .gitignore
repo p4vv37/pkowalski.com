@@ -1,0 +1,37 @@
+node_modules/
+dist/
+.astro/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+.vercel/
+.openai/
+playwright-report/
+test-results/
+# Local credentials, account configuration and original hosting backups.
+.aws/
+.ssh/
+.codex/
+.agents/
+.npmrc
+.pypirc
+.netrc
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.har
+content.tar.gz
+*WordPress*.xml
+# Private working notes and audit outputs are kept outside this repository.
+/migration/
+/security-audit/
+/audit-results/
+/SECURITY_REVIEW.md

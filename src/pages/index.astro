@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { publishedPosts, href } from '../lib/content';
+import homepage from '../data/homepage.json';
+const posts = await publishedPosts();
+const selected = homepage.featuredSlugs.map((slug) => posts.find((post) => post.data.slug === slug)).filter((post): post is NonNullable<typeof post> => Boolean(post));
+const latest = posts.filter((post) => !homepage.featuredSlugs.includes(post.data.slug)).slice(0, homepage.latestCount);
+---
+<BaseLayout>
+  <section class="hero shell">
+    <div class="hero-eyebrow mono">p4vv37 / portfolio</div>
+    <div class="hero-main">
+      <div><h1>Paweł Kowalski</h1><p class="hero-role">Machine Learning Engineer for Game Technology</p></div>
+      <div class="hero-intro"><p>Projects and technical notes on neural networks, rendering and tools for game development.</p><div class="hero-links mono"><a class="text-link" href="https://github.com/p4vv37">GitHub <span aria-hidden="true">↗</span></a><a class="text-link" href="mailto:contact@pkowalski.com">Email <span aria-hidden="true">↗</span></a><a class="text-link" href={href('/about-us/')}>About me <span aria-hidden="true">↗</span></a></div></div>
+    </div>
+    <div class="hero-bottom mono"><span>Projects, experiments & notes</span><a href="#selected">Explore the work <span aria-hidden="true">↓</span></a></div>
+  </section>
+  <section id="selected" class="work-section shell" aria-labelledby="latest-title">
+    <div class="section-heading"><h2 id="latest-title"><span class="section-code mono">01 /</span> Latest entries</h2><span class="section-note mono">Most recent</span></div>
+    <div class="latest-grid">{latest.map((post, index) => <PostCard post={post} index={index} />)}</div>
+  </section>
+  <section class="work-section shell" aria-labelledby="selected-title">
+    <div class="section-heading"><h2 id="selected-title"><span class="section-code mono">02 /</span> Selected projects</h2><span class="section-note mono">Two highlights</span></div>
+    <div class="featured-grid">{selected.map((post, index) => <PostCard post={post} index={index} />)}</div>
+  </section>
+  <div class="notes-section shell"><a class="archive-link mono" href={href('/archive/')}>Explore all {posts.length} entries <span aria-hidden="true">↗</span></a></div>
+</BaseLayout>

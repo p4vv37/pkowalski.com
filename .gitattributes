@@ -1,0 +1,5 @@
+# Preserve original WordPress HTML verbatim, including its whitespace/newlines.
+src/content/** -text -whitespace
+# Retain formatting in the imported, standalone demos and vendored libraries.
+public/demo/** -whitespace
+public/flowers_demo/** -whitespace

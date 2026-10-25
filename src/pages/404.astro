@@ -1,0 +1,7 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { href } from '../lib/content';
+---
+<BaseLayout title="Page not found" noindex>
+  <section class="not-found shell"><p class="page-eyebrow mono">404 / Page not found</p><h1 class="page-title">A loose end<span class="accent">.</span></h1><p>This address doesn't lead to a page. You can find all projects and articles in the archive.</p><a class="text-link mono" href={href('/archive/')}>Browse work & notes <span aria-hidden="true">↗</span></a></section>
+</BaseLayout>

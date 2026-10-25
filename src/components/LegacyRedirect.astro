@@ -1,0 +1,24 @@
+---
+import routes from '../data/legacy-urls.json';
+const base = import.meta.env.BASE_URL;
+---
+<script is:inline define:vars={{ routes, base }}>
+  (() => {
+    const url = new URL(window.location.href);
+    const id = url.searchParams.get('p') || url.searchParams.get('page_id');
+    const prefix = base.replace(/\/$/, '');
+    let path = decodeURI(url.pathname);
+    if (prefix && (path === prefix || path.startsWith(prefix + '/'))) path = path.slice(prefix.length) || '/';
+    path = path.replace(/\/?$/, '/');
+    let target = id ? routes.ids[id] : undefined;
+    if (!target && url.searchParams.get('rara-portfolio') === 'portfolio') target = '/';
+    if (!target) target = routes.paths[path];
+    if (!target) return;
+    url.searchParams.delete('p');
+    url.searchParams.delete('page_id');
+    url.searchParams.delete('rara-portfolio');
+    const query = url.searchParams.toString();
+    const next = prefix + target + (query ? '?' + query : '') + url.hash;
+    if (next !== window.location.pathname + window.location.search + window.location.hash) window.location.replace(next);
+  })();
+</script>

@@ -1,0 +1,46 @@
+---
+import { dateLabel, postHref, type Post } from '../lib/content';
+interface Props { posts: Post[]; searchable?: boolean; }
+const { posts, searchable = false } = Astro.props;
+const years = [...new Set(posts.map((post) => post.data.date.slice(0, 4)))];
+---
+<div class="post-browser" data-post-browser>
+  {searchable && <form class="archive-controls" role="search" onsubmit="return false" hidden data-search-controls>
+    <div class="search-field"><label for="post-search">Search the archive</label><input id="post-search" type="search" placeholder="Search projects, topics, tools…" autocomplete="off" data-search /><span aria-hidden="true">⌕</span></div>
+    <div class="year-field"><label for="post-year">Year</label><select id="post-year" data-year><option value="">All years</option>{years.map((year) => <option value={year}>{year}</option>)}</select></div>
+  </form>}
+  <div class="post-list" role="list">
+    {posts.map((post, index) => <article role="listitem" class="post-row" data-post data-year-value={post.data.date.slice(0, 4)} data-search-value={`${post.data.title} ${post.data.description} ${post.data.tags.join(' ')}`.toLowerCase()}>
+      <span class="row-number mono" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+      <h3><a href={postHref(post)}>{post.data.title}</a>{post.data.draft && <span class="draft-label mono"> Draft</span>}</h3>
+      <time class="mono" datetime={post.data.date}>{dateLabel(post.data.date)}</time>
+      <span class="row-arrow" aria-hidden="true">↗</span>
+    </article>)}
+  </div>
+  {searchable && <p class="search-status mono" role="status" aria-live="polite" data-search-status hidden></p>}
+</div>
+<script>
+  for (const browser of document.querySelectorAll<HTMLElement>('[data-post-browser]')) {
+    const search = browser.querySelector<HTMLInputElement>('[data-search]');
+    const year = browser.querySelector<HTMLSelectElement>('[data-year]');
+    const controls = browser.querySelector<HTMLElement>('[data-search-controls]');
+    const status = browser.querySelector<HTMLElement>('[data-search-status]');
+    if (!search || !year || !controls || !status) continue;
+    controls.hidden = false;
+    status.hidden = false;
+    const rows = [...browser.querySelectorAll<HTMLElement>('[data-post]')];
+    const filter = () => {
+      const terms = search.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      let count = 0;
+      for (const row of rows) {
+        const visible = (!year.value || row.dataset.yearValue === year.value) && terms.every((term) => row.dataset.searchValue?.includes(term));
+        row.hidden = !visible;
+        if (visible) count++;
+      }
+      status.textContent = count ? `${count} of ${rows.length} entries` : 'No entries found. Try another search or year.';
+    };
+    search.addEventListener('input', filter);
+    year.addEventListener('change', filter);
+    filter();
+  }
+</script>

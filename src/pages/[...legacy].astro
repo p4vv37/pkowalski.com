@@ -1,0 +1,28 @@
+---
+import routes from '../data/legacy-urls.json';
+import LegacyRedirect from '../components/LegacyRedirect.astro';
+import { href } from '../lib/content';
+
+export function getStaticPaths() {
+  return Object.entries(routes.paths).map(([path, target]) => ({
+    params: { legacy: path.replace(/^\//, '').replace(/\/$/, '') }, props: { target },
+  }));
+}
+interface Props { target: string; }
+const { target } = Astro.props;
+const destination = href(target);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, follow" />
+    <link rel="icon" href={href('/favicon.svg')} type="image/svg+xml" />
+    <title>Page moved · Paweł Kowalski</title>
+    <link rel="canonical" href={new URL(destination, Astro.site)} />
+    <LegacyRedirect />
+    <noscript><meta http-equiv="refresh" content={`0;url=${destination}`} /></noscript>
+  </head>
+  <body><p>This page has moved. <a href={destination}>Continue to the page.</a></p></body>
+</html>
