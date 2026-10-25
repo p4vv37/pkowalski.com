@@ -1,114 +1,122 @@
-Strona została automatycznie przekonwertowana z istniejącego wcześniej portfolio opartego na WordPressie.
+This website was automatically converted from an existing WordPress portfolio.
 
 # pkowalski.com
 
-Portfolio Pawła Kowalskiego. Astro, Markdown/MDX, CSS i GitHub Pages.
+[Paweł Kowalski's portfolio](https://pkowalski.com), built with Astro, Markdown/MDX and CSS, and hosted on GitHub Pages.
 
-## Uruchomienie
+## Run locally
 
-Node.js 24 LTS.
+Requires Node.js 24 LTS and npm.
 
 ```bash
 npm ci
 npm run dev
 ```
 
-Otwórz adres pokazany w terminalu, zwykle `http://127.0.0.1:4321`.
+Open the URL printed in the terminal, usually `http://127.0.0.1:4321`.
+
+## Write a post
 
 ```bash
-npm run check          # typy i treści
-npm test              # stare adresy i renderowanie artykułów
-npm run build         # gotowa strona w dist/
-npm run verify        # strony, linki, media, RSS i kontakt
-npm run check:secrets # sekrety w historii Git, indeksie i gotowej stronie
-npm run preview       # podgląd zbudowanej wersji
+npm run new:post -- "Article title"
 ```
 
-## Dodawanie wpisów
-
-```bash
-npm run new:post -- "Tytuł artykułu"
-```
-
-Powstanie plik w `src/content/posts/`:
+This creates a draft in `src/content/posts/`:
 
 ```markdown
 ---
-title: "Tytuł artykułu"
-slug: "tytul-artykulu"
+title: "Article title"
+slug: "article-title"
 date: "2026-10-25"
-description: "Krótki opis wpisu."
-image: "/media/tytul-artykulu/preview.png"
+description: "A short description for the archive and search results."
+image: "/media/article-title/preview.png"
 tags: ["PyTorch", "Computer graphics"]
 draft: true
 ---
 
-Treść pisana w **Markdown**.
+Write the article in **Markdown**.
 
-![Opis ilustracji](../media/tytul-artykulu/illustration.png)
+![Image description](../media/article-title/illustration.png)
 ```
 
-Grafiki umieszczaj w `public/media/tytul-artykulu/`. Pole `image` jest opcjonalne. Ścieżki względne w treści działają zarówno na własnej domenie, jak i pod adresem projektu na `github.io`.
+Place images in `public/media/article-title/`. The `image` field is optional and supplies the thumbnail shown on the home page. Relative image paths in the article work with both the custom domain and the `github.io` project URL.
 
-Szkice z `draft: true` są widoczne w lokalnym podglądzie z oznaczeniem „Draft”; nie trafiają do publikacji, archiwum ani RSS. Gdy wpis będzie gotowy, ustaw `draft: false`, zrób commit i push do `main`.
+Drafts appear in the local development server with a **Draft** label. They are excluded from production builds, the published archive and RSS. Set `draft: false` when a post is ready, then commit and push to `main`.
 
-## Edycja istniejących treści
+## Edit existing content
 
-Wpisy są w `src/content/posts/`, a strony About i Contact w `src/content/pages/`. Każdy plik zawiera metadane, a poniżej treść.
+- Articles: `src/content/posts/`
+- About and Contact pages: `src/content/pages/`
+- Home page layout: `src/pages/index.astro`
+- Home page selection: `src/data/homepage.json`
+- Site styles: `src/styles/global.css`
+- Article styles: `src/styles/prose.css`
 
-Dotychczasowe wpisy mają `format: "wordpress-blocks"` lub `format: "wordpress-classic"` i zachowany HTML. Można edytować ten HTML bez konwersji. Nowe wpisy domyślnie korzystają z Markdown.
+Imported articles retain their original HTML and use `format: "wordpress-blocks"` or `format: "wordpress-classic"`. Edit that HTML directly. New posts use Markdown by default.
 
-Strona główna jest w `src/pages/index.astro`. W `src/data/homepage.json` ustawiasz liczbę najnowszych wpisów (`latestCount`) i dwa wyróżnione projekty (`featuredSlugs`). Lista najnowszych aktualizuje się według dat i nie dubluje wyróżnień.
+In `homepage.json`, `latestCount` controls the number of recent entries and `featuredSlugs` selects the two featured projects. Recent entries are sorted by date and exclude the featured projects to avoid duplicates.
 
-Wygląd strony jest w `src/styles/global.css`, a artykułów w `src/styles/prose.css`.
+## Add an interactive demo
 
-## Interaktywne dema
+For a standalone browser demo, put its files in `public/demos/example/`, including an `index.html`. Use relative asset paths inside the demo. From an article, link to `../demos/example/index.html`.
 
-Samodzielne demo można umieścić w `public/demos/nazwa/index.html` razem z jego skryptami i zasobami. Wewnątrz używaj ścieżek względnych. Z artykułu linkuj do `../demos/nazwa/index.html`.
-
-Do osadzania komponentów w treści użyj MDX:
+To embed components directly in an article, create an MDX post:
 
 ```bash
-npm run new:post -- "Artykuł z demo" --mdx
+npm run new:post -- "Article with a demo" --mdx
 ```
 
-W pliku MDX można importować komponenty Astro z `src/components/`. React lub Svelte można dołożyć, gdy będzie tego potrzebowało konkretne demo. GitHub Pages wykonuje kod przeglądarkowy; Python lub GPU wymagają osobnej usługi.
+MDX files can import Astro components from `src/components/`. React or Svelte integrations can be added if a demo needs them. GitHub Pages serves static files; Python services and GPU inference need separate hosting.
 
-Istniejąca symulacja lotu samolotu jest w `public/demo/`. Generator kwiatów w `public/flowers_demo/` wymaga oryginalnych modeli GAN/VAE do przywrócenia interakcji; obecnie pokazuje oryginalny wynik i link do artykułu.
+The existing paper-plane simulation is in `public/demo/`. The flower generator in `public/flowers_demo/` needs its original GAN/VAE models to restore interaction; it currently displays the original output and links to the article.
 
-## GitHub Pages
+## Validate changes
 
-1. W repozytorium wybierz **Settings → Pages → Source: GitHub Actions**.
-2. Wypchnij kod do `main`.
-3. Sprawdź workflow **Build and deploy portfolio** w zakładce **Actions**. W razie potrzeby uruchom go przez **Run workflow**.
-4. Otwórz adres wdrożenia, zwykle `https://p4vv37.github.io/pkowalski.com/`.
+```bash
+npm run check          # Astro and TypeScript checks
+npm test              # URL compatibility and article rendering tests
+npm run build         # Generate the website in dist/
+npm run verify        # Check pages, local links, media, RSS and contact links
+npm run check:secrets # Scan Git history, staged changes and the generated site
+npm run preview       # Serve the production build locally
+```
 
-Workflow odczytuje adres z ustawień Pages, sprawdza projekt i publikuje `dist/`. Pull requesty wykonują kontrole bez publikacji. Katalog `dist/` nie jest commitowany.
+The secret scan uses Gitleaks. The script can download a pinned Linux x64 release and verify its SHA-256, or use an installed binary through `GITLEAKS_BIN`. Detected values are redacted from logs. Local credentials, account settings and hosting backups are excluded by `.gitignore`.
 
-### Własna domena
+## Deploy to GitHub Pages
 
-Po sprawdzeniu podglądu:
+The workflow in `.github/workflows/deploy.yml` validates, builds and publishes the site on each push to `main`. Pull requests run checks without publishing. Do not commit `dist/`.
 
-1. Zweryfikuj domenę w ustawieniach konta GitHub, zgodnie z instrukcją rekordu TXT.
-2. W **Settings → Pages → Custom domain** ustaw `www.pkowalski.com`.
-3. U operatora DNS ustaw CNAME dla `www` na `p4vv37.github.io`. Domenę główną skonfiguruj według instrukcji GitHuba. Zachowaj rekordy poczty MX/SPF/DKIM.
-4. Po potwierdzeniu DNS włącz **Enforce HTTPS** i ponownie uruchom workflow.
+For initial setup, select **Settings → Pages → Build and deployment → Source: GitHub Actions** in the repository. Deployment progress is shown in the **Actions** tab. The workflow can also be started manually with **Run workflow**.
 
-[Instrukcja domeny GitHub Pages](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site), [Astro na Pages](https://docs.astro.build/en/guides/deploy/github/).
+The build reads the hostname and base path from the repository's Pages settings, so it supports both a custom domain and the default project URL.
 
-Wariant dla adresu projektu można sprawdzić lokalnie:
+To test the project URL locally:
 
 ```bash
 SITE_URL=https://p4vv37.github.io BASE_PATH=/pkowalski.com npm run build
 BASE_PATH=/pkowalski.com npm run verify
 ```
 
-Bez tych zmiennych build używa `https://www.pkowalski.com`.
+To build for the custom domain:
 
-## Kontakt i stare adresy
+```bash
+SITE_URL=https://pkowalski.com BASE_PATH=/ npm run build
+npm run verify
+```
 
-Publiczny kontakt: [contact@pkowalski.com](mailto:contact@pkowalski.com), [GitHub](https://github.com/p4vv37).
+### Custom domain
 
-Stare adresy WordPressa (`?p=…`, `?page_id=…`, `/wp_portfolio/…`) obsługuje `src/data/legacy-urls.json`. Przekierowania stron wykonuje przeglądarka; aliasy ścieżek mają także odnośnik i fallback bez JavaScript. Media są dostępne pod oboma dawnymi prefiksami. Dodatkowa kopia powstaje tylko podczas budowania `dist/`.
+Set `pkowalski.com` under **Settings → Pages → Custom domain**, configure the domain's DNS records for GitHub Pages, and enable **Enforce HTTPS** once the certificate is ready. Preserve email-related MX, SPF and DKIM records when changing DNS.
 
-Pliki lokalnych kont, kluczy i kopii hostingu są wykluczone przez `.gitignore`. Kontrola sekretów wymaga Gitleaksa; skrypt potrafi pobrać przypiętą wersję dla Linux x64 i sprawdzić jej SHA-256. Można też ustawić `GITLEAKS_BIN` na własną instalację narzędzia. Wartości wykryte przez skaner są ukrywane w logach.
+After changing Pages settings, run the deployment workflow again to regenerate asset paths, canonical URLs and the sitemap.
+
+See [GitHub's custom-domain instructions](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site) and [Astro's GitHub Pages guide](https://docs.astro.build/en/guides/deploy/github/).
+
+## Contact and legacy URLs
+
+Public contact: [contact@pkowalski.com](mailto:contact@pkowalski.com) · [GitHub](https://github.com/p4vv37).
+
+`src/data/legacy-urls.json` maps WordPress URLs such as `?p=…`, `?page_id=…` and `/wp_portfolio/…` to the current pages. Page redirects run in the browser; path aliases also provide a link and a fallback without JavaScript.
+
+Media remains available under both historical upload prefixes. The extra compatibility copy is created only in `dist/` during the build.
