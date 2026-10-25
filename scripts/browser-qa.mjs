@@ -45,6 +45,15 @@ try {
     return JSON.parse(result.result.value);
   };
   const navigate = (path) => command('browsingContext.navigate', { context, url: base + path, wait: 'complete' });
+  const waitForPath = async (suffix) => {
+    for (let attempt = 0; attempt < 80; attempt++) {
+      try {
+        if (await evaluate(`return location.pathname.endsWith(${JSON.stringify(suffix)}) && document.readyState === 'complete';`)) return;
+      } catch {} // The previous document may be replaced while evaluating.
+      await new Promise((resolve) => setTimeout(resolve, 125));
+    }
+    throw new Error(`Redirect did not finish: ${await evaluate('return location.href;')}`);
+  };
   const screenshot = async (name) => {
     mkdirSync('/tmp/pkowalski-preview', { recursive: true });
     const result = await command('browsingContext.captureScreenshot', { context, origin: 'viewport', format: { type: 'image/png' } });
@@ -53,7 +62,8 @@ try {
   await command('browsingContext.setViewport', { context, viewport: { width: 1440, height: 1100 }, devicePixelRatio: 1 });
   await navigate('/');
   assert.match(await evaluate('return document.querySelector("h1").textContent;'), /Paweł/);
-  assert.equal(await evaluate('return [...document.querySelectorAll(".card-image img")].every(img => img.complete && img.naturalWidth > 0);'), true);
+  const homeImages = await evaluate('let images; for (let i=0; i<100; i++) { images=[...document.querySelectorAll(".card-image img")]; if (images.every(img=>img.complete && img.naturalWidth>0)) break; await new Promise(resolve=>setTimeout(resolve,100)); } return images.map(img=>({src:img.currentSrc,loaded:img.complete && img.naturalWidth>0}));');
+  assert.ok(homeImages.every((img) => img.loaded), `Home images did not load: ${JSON.stringify(homeImages)}`);
   await screenshot('home-desktop');
   console.log('Home: heading, selected projects and images OK');
 
@@ -71,11 +81,13 @@ try {
   console.log(`Archive: ${total} entries, title search, empty results and year filter OK`);
 
   await navigate('/?p=2705#main');
+  await waitForPath('/reconstructing-shader-inputs-with-slangpy-and-pytorch/');
   assert.match(await evaluate('return location.pathname;'), /reconstructing-shader-inputs-with-slangpy-and-pytorch\/$/);
   assert.equal(await evaluate('return location.hash;'), '#main');
   assert.ok(await evaluate('return document.querySelectorAll("[data-article-body] img").length > 0 && document.querySelectorAll("[data-article-body] pre code").length > 0;'));
   await screenshot('article-desktop');
   await navigate('/wp_portfolio/?page_id=133');
+  await waitForPath('/about-us/');
   assert.match(await evaluate('return location.pathname;'), /about-us\/$/);
   console.log('Legacy query URLs and old path aliases resolve to the correct content');
 
