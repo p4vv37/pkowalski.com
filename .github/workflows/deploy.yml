@@ -44,7 +44,7 @@ jobs:
       - name: Build the static site
         run: npm run build
         env:
-          SITE_URL: ${{ steps.pages.outputs.origin || 'https://www.pkowalski.com' }}
+          SITE_URL: ${{ format('https://{0}', steps.pages.outputs.host || 'www.pkowalski.com') }}
           BASE_PATH: ${{ steps.pages.outputs.base_path || '/' }}
       - name: Check every page, local link and migrated file
         run: npm run verify
