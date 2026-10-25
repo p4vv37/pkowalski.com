@@ -1,3 +1,5 @@
+Strona została automatycznie przekonwertowana z istniejącego wcześniej portfolio opartego na WordPressie.
+
 # pkowalski.com
 
 Portfolio Pawła Kowalskiego. Astro, Markdown/MDX, CSS i GitHub Pages.
