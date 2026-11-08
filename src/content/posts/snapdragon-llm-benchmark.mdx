@@ -28,17 +28,17 @@ The starting point is Qwen3-4B-Instruct-2507. Later, I will test selected model 
 
 **Key results:**
 
-- **Short input, AC power:** the CPU with Q4_0 gives about 33 tokens/s — the fastest.
-- **Battery + Power Saving:** the NPU (qairt) holds about 20 tokens/s at roughly 4 W — the best battery choice.
+- **Short input, AC power:** the CPU with Q4_0 gives about 33 tokens/s - the fastest.
+- **Battery + Power Saving:** the NPU (qairt) holds about 20 tokens/s at roughly 4 W - the best battery choice.
 - **Long input (6180 tokens):** about 33 s on the NPU versus about 86 s on the CPU.
 - **Model size:** 8B and 14B are a sensible compromise; 32B (about 4.8 tokens/s) is too slow.
-- The NPU is not automatically the best choice — it depends on the scenario.
+- The NPU is not automatically the best choice - it depends on the scenario.
 
 <SpeedPowerChart lang="en" />
 
 <InputLengthChart lang="en" />
 
-**Longer input can change which device is faster.** With 420 input tokens, the CPU finished generation sooner: 6.69 s versus 9.31 s on the NPU. With 6180 input tokens, the NPU took 32.96 s and the CPU 86.03 s — the NPU was about **2.6× faster in this test**.
+**Longer input can change which device is faster.** With 420 input tokens, the CPU finished generation sooner: 6.69 s versus 9.31 s on the NPU. With 6180 input tokens, the NPU took 32.96 s and the CPU 86.03 s - the NPU was about **2.6× faster in this test**.
 
 ## 1. Background
 
@@ -48,9 +48,9 @@ I'm testing a [Yoga Slim 7x](https://www.lenovo.com/pl/pl/p/laptops/yoga/ai-lapt
 
 The [laptop](https://psref.lenovo.com/syspool/Sys/PDF/Yoga/Yoga_Slim_7_14Q8X9/Yoga_Slim_7_14Q8X9_Spec.pdf) has a **Qualcomm Snapdragon X Elite** with three compute units:
 
-- **CPU** — 12 Qualcomm Oryon cores, split into three clusters of four, running at up to 3.4 GHz under multicore workloads.
-- **GPU** — integrated Qualcomm Adreno X1-85, using shared RAM, with [OpenCL support](https://github.com/ggml-org/llama.cpp/blob/785322d17f2d51e5185cf996a1f4e46d87640841/docs/backend/OPENCL.md).
-- **NPU** — Qualcomm Hexagon, rated at up to 45 TOPS (trillion operations per second).
+- **CPU** - 12 Qualcomm Oryon cores, split into three clusters of four, running at up to 3.4 GHz under multicore workloads.
+- **GPU** - integrated Qualcomm Adreno X1-85, using shared RAM, with [OpenCL support](https://github.com/ggml-org/llama.cpp/blob/785322d17f2d51e5185cf996a1f4e46d87640841/docs/backend/OPENCL.md).
+- **NPU** - Qualcomm Hexagon, rated at up to 45 TOPS (trillion operations per second).
 
 **TFLOPS and TOPS don't translate directly into tokens/s.** Generation speed also depends on the model, data transfers from memory, and the compute implementation. [It needs to be measured for a specific configuration](https://huggingface.co/docs/transformers/llm_tutorial_optimization).
 
@@ -183,7 +183,7 @@ Quantization approximates numerical values using a limited representation. Fewer
 | **Q8_0** | **Uniform quantization (8-bit) in GGML.** Every individual model weight is reduced to 8 bits. The model is divided into small blocks, each with its own multiplier (scale) to compensate for errors |
 | **Q4_0** | **Uniform quantization (4-bit) in GGML.** As above, but each weight is reduced to just 4 bits. Very aggressive compression, with a noticeable drop in the model's quality and “intelligence” |
 | **Q4_K_M** | **Mixed-precision quantization in GGML.** Instead of reducing everything equally, standard layers get 4 bits, while parts critical to the model's logic, such as some attention value vectors, retain 6-bit precision. This provides an optimal size-to-quality ratio |
-| **W4A16**<br/>(in QNN) | **A hardware execution configuration for accelerators.** Weights in memory (W — *Weights*) use 4 bits, but results passed between layers on the fly (A — *Activations*) are computed using a wider 16-bit representation. This is an instruction for the hardware, not a strict equivalent of a single GGML format |
+| **W4A16**<br/>(in QNN) | **A hardware execution configuration for accelerators.** Weights in memory (W - *Weights*) use 4 bits, but results passed between layers on the fly (A - *Activations*) are computed using a wider 16-bit representation. This is an instruction for the hardware, not a strict equivalent of a single GGML format |
 
 #### What Does “4-Bit” Quantization Mean in Practice?
 
