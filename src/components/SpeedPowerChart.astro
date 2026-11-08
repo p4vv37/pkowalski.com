@@ -33,20 +33,33 @@ const chartData = JSON.stringify({ labels, decode, power });
 ---
 
 <figure class="interactive-chart" data-speed-power-chart>
-  <div id="speed-power-chart" class="interactive-chart-plot" role="img" aria-label={labels.title}></div>
+  <div class="interactive-chart-header">
+    <div class="interactive-chart-title">{labels.title}</div>
+    <div class="interactive-chart-controls" role="group" aria-label={labels.title}>
+      <button type="button" data-metric="decode" aria-pressed="true">{labels.decode}</button>
+      <button type="button" data-metric="power" aria-pressed="false">{labels.power}</button>
+    </div>
+  </div>
+  <div class="interactive-chart-plot" role="img" aria-label={labels.title}></div>
   <figcaption class="interactive-chart-note">{labels.note}</figcaption>
   <script is:inline define:vars={{ chartData }}>
     (function () {
       var d = JSON.parse(chartData);
       var labels = d.labels;
       var C = { ac: '#2563eb', battery: '#0f766e', ps: '#b45309' };
+      var figure = document.currentScript.closest('[data-speed-power-chart]');
+      var plot = figure.querySelector('.interactive-chart-plot');
+      var buttons = figure.querySelectorAll('[data-metric]');
+      var metric = 'decode';
+      var ready = false;
 
-      function bar(name, ys, color, unit) {
+      function bar(name, ys, color, unit, indices) {
+        indices = indices || labels.devices.map(function (_, i) { return i; });
         return {
           type: 'bar',
           name: name,
-          x: labels.devices,
-          y: ys,
+          x: indices.map(function (i) { return labels.devices[i]; }),
+          y: indices.map(function (i) { return ys[i]; }),
           marker: { color: color },
           hovertemplate: '%{y:.1f} ' + unit + '<br>%{x}<extra>' + name + '</extra>',
         };
@@ -57,60 +70,103 @@ const chartData = JSON.stringify({ labels, decode, power });
         bar(labels.battery, d.decode.battery, C.battery, labels.decode),
         bar(labels.ps, d.decode.ps, C.ps, labels.decode),
       ];
+      // Keep only devices with a recorded power reading. Do not turn missing
+      // measurements into zeroes or reserve empty categories on the x axis.
+      var powerIndices = labels.devices.map(function (_, i) { return i; }).filter(function (i) {
+        return Number.isFinite(d.power.ac[i]) || Number.isFinite(d.power.ps[i]);
+      });
       var powerTraces = [
-        bar(labels.ac, d.power.ac, C.ac, labels.power),
-        bar(labels.ps, d.power.ps, C.ps, labels.power),
+        bar(labels.ac, d.power.ac, C.ac, labels.power, powerIndices),
+        bar(labels.ps, d.power.ps, C.ps, labels.power, powerIndices),
       ];
-      var allTraces = decodeTraces.concat(powerTraces);
 
       var layout = {
         barmode: 'group',
-        title: { text: labels.title, font: { size: 17, color: '#0f172a' } },
         paper_bgcolor: '#f8fafc',
         plot_bgcolor: '#f8fafc',
         font: { family: 'Segoe UI, Arial, sans-serif', color: '#0f172a' },
         xaxis: { tickangle: -18, automargin: true, gridcolor: '#cbd5e1', linecolor: '#cbd5e1' },
         yaxis: { title: { text: labels.decode }, gridcolor: '#cbd5e1', zeroline: false, linecolor: '#cbd5e1' },
-        margin: { t: 56, b: 72, l: 60, r: 12 },
-        legend: { orientation: 'h', x: 0, y: 1.14 },
-        updatemenus: [{
-          type: 'buttons',
-          direction: 'right',
-          x: 0, y: 1.18, xanchor: 'left', yanchor: 'top',
-          pad: { r: 6, t: 6 },
-          buttons: [
-            {
-              label: labels.decode, method: 'update',
-              args: [{ visible: [true, true, true, false, false] }, { 'yaxis.title.text': labels.decode }],
-            },
-            {
-              label: labels.power, method: 'update',
-              args: [{ visible: [false, false, false, true, true] }, { 'yaxis.title.text': labels.power }],
-            },
-          ],
-        }],
+        margin: { t: 48, b: 72, l: 60, r: 12 },
+        legend: { orientation: 'h', x: 0, y: 1.04, xanchor: 'left', yanchor: 'bottom' },
       };
 
       var config = { responsive: true, displayModeBar: false };
 
       function render() {
-        window.Plotly.newPlot('speed-power-chart', allTraces, layout, config);
+        // Replace the traces rather than hiding them: hidden traces must not
+        // leave stale device categories behind when switching metrics.
+        layout.xaxis.autorange = true;
+        layout.yaxis.autorange = true;
+        layout.yaxis.title.text = metric === 'power' ? labels.power : labels.decode;
+        window.Plotly.react(plot, metric === 'power' ? powerTraces : decodeTraces, layout, config);
+      }
+
+      buttons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          metric = button.dataset.metric;
+          buttons.forEach(function (item) {
+            item.setAttribute('aria-pressed', String(item === button));
+          });
+          if (ready) render();
+        });
+      });
+
+      function start() {
+        ready = true;
+        render();
       }
 
       function fail() {
-        var el = document.getElementById('speed-power-chart');
-        if (el) el.textContent = labels.note;
+        plot.textContent = labels.note;
+        buttons.forEach(function (button) { button.disabled = true; });
       }
 
       if (window.Plotly) {
-        render();
+        start();
       } else {
         var s = document.createElement('script');
         s.src = 'https://cdn.plot.ly/plotly-2.35.2.min.js';
-        s.onload = render;
+        s.onload = start;
         s.onerror = fail;
         document.head.appendChild(s);
       }
     })();
   </script>
 </figure>
+
+<style>
+  .interactive-chart-header {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 16px 0;
+    background: #f8fafc;
+    color: #0f172a;
+    border: 1px solid var(--line);
+    border-bottom: 0;
+    border-radius: 8px 8px 0 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    line-height: 1.4;
+  }
+  .interactive-chart-title { font-size: 17px; font-weight: 600; }
+  .interactive-chart-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+  .interactive-chart-controls button {
+    padding: 8px 12px;
+    border: 1px solid #94a3b8;
+    border-radius: 6px;
+    background: #fff;
+    color: #0f172a;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .interactive-chart-controls button[aria-pressed='true'] {
+    border-color: #2563eb;
+    background: #dbeafe;
+    color: #1e40af;
+  }
+  .interactive-chart-controls button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+  .interactive-chart-controls button:disabled { cursor: not-allowed; opacity: .6; }
+  .interactive-chart .interactive-chart-plot { border-top: 0; border-radius: 0 0 8px 8px; }
+</style>
