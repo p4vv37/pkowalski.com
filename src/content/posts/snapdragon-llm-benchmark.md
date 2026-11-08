@@ -23,9 +23,9 @@ The starting point is Qwen3-4B-Instruct-2507. Later, I will test selected model 
 
 *P.S. A note on the language: this time I decided to try something new and wrote the article in Polish, my native language. I can put the text together faster and make fewer mistakes that way. LLMs seem to be very good at translation, so I used one to translate it into English. I'm curious to see how well this works.*
 
-## 2. Background
+## 1. Background
 
-### 2.1. Hardware
+### 1.1. Hardware
 
 I'm testing a [Yoga Slim 7x](https://www.lenovo.com/pl/pl/p/laptops/yoga/ai-laptops/yoga-slim-7x-gen-9-14-inch-snapdragon/len101y0049) with a [Snapdragon X Elite X1E-78-100](https://www.cpubenchmark.net/cpu.php?cpu=Qualcomm+Snapdragon+X+Elite+-+X1E-78-100&id=6095) and 32 GB of RAM. There are three compute devices within this single SoC that can run model computations.
 
@@ -37,7 +37,7 @@ The [laptop](https://psref.lenovo.com/syspool/Sys/PDF/Yoga/Yoga_Slim_7_14Q8X9/Yo
 
 **TFLOPS and TOPS don't translate directly into tokens/s.** Generation speed also depends on the model, data transfers from memory, and the compute implementation. [It needs to be measured for a specific configuration](https://huggingface.co/docs/transformers/llm_tutorial_optimization).
 
-### 2.2. Models and Files
+### 1.2. Models and Files
 
 #### Models Used
 
@@ -114,7 +114,7 @@ Unsupported operations can fall back to the CPU if the configuration allows it. 
 | QNN context `.bin` | Opaque, compiled instructions for specific hardware | QNN interface, for example through the `qairt` plugin | In the path discussed here, the HTP backend and Hexagon NPU |
 | `.dlc` | Deep Learning Container: Qualcomm's network container, which can also include a prepared context | Compatible Qualcomm tools and runtime | Requires strict compatibility between the file, target SoC, and software version |
 
-### 2.4. What Can Run the Model on the CPU, GPU, and NPU?
+### 1.3. What Can Run the Model on the CPU, GPU, and NPU?
 
 Running a model on specific hardware requires a **runtime** to load the model and coordinate execution, and a **compute backend** to execute supported operations on the device.
 
@@ -156,7 +156,7 @@ Running a GGUF model on Hexagon does not require converting it to ONNX or going 
 
 The CPU controls the NPU, handles text tokenization, and performs sampling. This is expected and is not the same as model computations falling back from the accelerator to the CPU.
 
-### 2.5. [Quantization](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html)
+### 1.4. [Quantization](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html)
 
 Quantization approximates numerical values using a limited representation. Fewer bits can mean a smaller file, lower memory use, and less data to transfer. It does not guarantee a speedup: the backend needs an efficient implementation of the scheme. It can also change the model's responses.
 
@@ -213,7 +213,7 @@ Separately, I test models from 1.7B to 32B on the CPU, larger context window cap
 
 When comparing the same GGUF across devices, I keep the model file unchanged. Switching to a QNN package also changes the quantization and runtime, so that result compares complete configurations, not just hardware.
 
-### 2.6. Reading the Timing, Context, and Memory Results
+### 1.5. Reading the Timing, Context, and Memory Results
 
 - **Prefill:** processing the input.
 - **TTFT:** time from the start of a request to the first response token.
@@ -225,11 +225,11 @@ Reported TTFT and generation times do not include loading the model. A shorter T
 
 **Model file size is not the same as RAM use.** There are also caches, activations, buffers, and memory used by the system. I did not obtain reliable RAM measurements.
 
-## 3. What Actually Ran
+## 2. What Actually Ran
 
 First, I checked whether each environment could initialize the model and generate a response at all. Only stable, working configurations made it into the final performance measurements.
 
-### 3.1. Environment Summary
+### 2.1. Environment Summary
 
 | Environment | Local test result | Benchmark included? |
 | --- | --- | --- |
@@ -252,11 +252,11 @@ I registered a local GGUF file and tested NPU initialization. The performance me
 
 I used a prepared QNN W4A16 package for Snapdragon X Elite chips, compatible with the `qairt` plugin.
 
-### 3.2. What I Did Not Measure
+### 2.2. What I Did Not Measure
 
 I considered ORT as an alternative, but testing it would require preparing or obtaining a compatible model, configuring generation, and verifying the selected integration. That would be a separate stage of work requiring more time. I therefore limited the scope to working GenieX configurations. The lack of ORT results is a scope decision, not evidence that this path does not work.
 
-## 4. How I Measure and What I Compare
+## 3. How I Measure and What I Compare
 
 I tested GenieX v0.10.0 with QAIRT 2.50 and its bundled llama.cpp version.
 
@@ -266,11 +266,11 @@ Each run is the first request in a new process. A warm-up run may warm the syste
 
 I set the power states manually: AC power, battery, and battery with Power Saving.
 
-## 5. Results: Speed, Energy, and Input Length
+## 4. Results: Speed, Energy, and Input Length
 
 The charts show results from recorded runs. Error bars on the speed charts show the minimum and maximum, not a confidence interval. AC means connected to the charger, and Power Saving means the energy-saving mode.
 
-### 5.1. Speed: 4B in Three Power States
+### 4.1. Speed: 4B in Three Power States
 
 Medians from five runs after one warm-up run. The exception is the CPU with Power Saving, where the warm-up run timed out. The response limit is 128 tokens, with thinking disabled. The `llama_cpp` window is 512 tokens; the `qairt` window comes from the package.
 
@@ -288,7 +288,7 @@ Medians from five runs after one warm-up run. The exception is the CPU with Powe
 
 `qairt` had the shortest TTFT: medians of 89–98 ms depending on the power state. The CPU achieved 150–158 ms, the NPU through ggml-hexagon 158–187 ms, hybrid 207–220 ms, and the GPU 278–291 ms. These are results for complete execution paths, not the devices alone: `qairt` processed 61 input tokens, while `llama_cpp` processed 48.
 
-### 5.2. Average Power: How Many Watts Did the Measurement Show?
+### 4.2. Average Power: How Many Watts Did the Measurement Show?
 
 To make the comparison easier to read, I show **average net power in watts (W)**. Watts describe how quickly energy is being used, not how much energy the entire response consumed. Lower power does not always mean less energy per task if the model has to run much longer.
 
@@ -309,7 +309,7 @@ These are estimates from the SYS channel after subtracting a separately measured
 
 There is only one run per configuration, and the responses differ in both length and content. I therefore do not treat these numbers as the cost of performing an identical task. The CPU timeout is a separate observation, not a completed test. The battery series changes both the power source and the operating mode, so it does not isolate the effect of Power Saving alone.
 
-### 5.3. What Would I Choose on Battery and with Power Saving?
+### 4.3. What Would I Choose on Battery and with Power Saving?
 
 Unplugging the charger alone did not change speed much in this short test: decode differed by less than 1% for the CPU and both NPU paths, about 4.6% for the GPU, and 4.1% for hybrid.
 
@@ -317,7 +317,7 @@ Unplugging the charger alone did not change speed much in this short test: decod
 
 The NPU was therefore the best of the tested choices for this scenario, but **not the only one that worked**: the GPU still generated text. The lower approximate power of `qairt` in the separate measurement is another reason to consider this path on battery.
 
-### 5.4. Quantization: 4B on CPU and NPU through ggml-hexagon
+### 4.4. Quantization: 4B on CPU and NPU through ggml-hexagon
 
 AC power, a short prompt, medians from five runs. The chart shows decode: the rate of generating subsequent tokens.
 
@@ -336,7 +336,7 @@ The separate `qairt` QNN W4A16 package achieved 21.3 tokens/s. I do not include 
 
 On the CPU, Q4_0 was about 3.2 times faster than F16 in decode and more than 12 times faster in prefill. The NPU had slower decode for all these GGUF variants, but smaller prefill differences between quantization schemes. This is a result for this model and build, not a general ranking of the schemes.
 
-### 5.5. Parameter Count: From 1.7B to 32B on the CPU
+### 4.5. Parameter Count: From 1.7B to 32B on the CPU
 
 AC power, Q4_K_M, non-thinking, five measured runs each.
 
@@ -356,11 +356,11 @@ AC power, Q4_K_M, non-thinking, five measured runs each.
 - **1.7B:** the most speed headroom. A useful starting point for simple, narrow tasks, but check whether the quality is enough.
 - **8B:** about 18 tokens/s with a short input is a reasonable starting point for interactive work.
 - **14B:** about 10.5 tokens/s. Slower, but still a reasonable option if the larger model gives a better result for a particular task.
-- **32B:** about 4.8 tokens/s. Decoding 128 tokens alone takes roughly 27 seconds. I would choose it for a task where I can wait for the result rather than a quick exchange of short messages.
+- **32B:** about 4.8 tokens/s. Decoding 128 tokens alone takes roughly 27 seconds. Practically, it is too slow to be useful.
 
 32B is the largest model for which I obtained a result in this series, **not an established limit of this laptop**. These runs use short inputs and a 512-token window. Speed does not demonstrate quality, and a longer document could change responsiveness considerably.
 
-### 5.6. Window Capacity and Actual Input Length
+### 4.6. Window Capacity and Actual Input Length
 
 #### Changing Window Capacity with a Short Prompt (CPU, AC)
 
@@ -396,9 +396,9 @@ These are two separate findings: I measured the speed advantage for longer input
 
 Between the shortest and longest inputs, CPU decode dropped by about 77% and NPU decode by 48%. I do not attribute the drop to a single mechanism: the input is synthetic, the series ran from shortest to longest, and I did not record temperature or clock speeds. I did not measure energy or document task quality here.
 
-## 6. What to Choose for a Particular Use Case
+## 5. What to Choose for a Particular Use Case
 
-### 6.1. Practical Conclusions from These Tests
+### 5.1. Practical Conclusions from These Tests
 
 I would not pick one configuration for everything. First, I would decide whether response speed, battery use, document length, or the capabilities of a larger model matter most. The suggestions below are starting points for your own tasks, not a model quality ranking or a guarantee of how every application will behave.
 
@@ -410,7 +410,7 @@ I would not pick one configuration for everything. First, I would decide whether
 | A larger model for a task where you can wait | 32B Q4_K_M on the CPU | About 4.8 tokens/s. This is the largest measured model, not a confirmed hardware limit |
 | A longer input and short response | `llama_cpp` on the NPU | With 6180 input tokens and 128 output tokens, about 33 seconds of generation versus 86 seconds on the CPU |
 
-### 6.2. My Takeaways
+### 5.2. My Takeaways
 
 The NPU turned out to be useful, and I will keep experimenting with it. It is not automatically the best choice just because it was designed for neural network computations:
 

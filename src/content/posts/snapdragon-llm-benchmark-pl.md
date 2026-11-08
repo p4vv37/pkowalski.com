@@ -21,9 +21,9 @@ Dodatkową motywacją jest dla mnie chęć lepszego poznania technologii i chę�
 
 Punktem startowym jest Qwen3-4B-Instruct-2507. Później sprawdzę wybrane rozmiary modeli, kwantyzacje i długości kontekstu. Porównania dotyczą natywnego Windows ARM64 na tym laptopie.
 
-## 2. Podstawowe informacje
+## 1. Podstawowe informacje
 
-### 2.1. Sprzęt
+### 1.1. Sprzęt
 
 Testuję [Yoga Slim 7x](https://www.lenovo.com/pl/pl/p/laptops/yoga/ai-laptops/yoga-slim-7x-gen-9-14-inch-snapdragon/len101y0049) ze [Snapdragonem X Elite X1E-78-100](https://www.cpubenchmark.net/cpu.php?cpu=Qualcomm+Snapdragon+X+Elite+-+X1E-78-100&id=6095) i 32 GB RAM. W jednym SOC są trzy urządzenia, na których można wykonywać obliczenia modelu.
 
@@ -35,7 +35,7 @@ Testuję [Yoga Slim 7x](https://www.lenovo.com/pl/pl/p/laptops/yoga/ai-laptops/y
 
 **TFLOPS i TOPS nie da się łatwo przeliczyć na tokeny/s**. Szybkość generowania zależy też od modelu, przesyłania danych z pamięci i implementacji obliczeń. [Trzeba ją zmierzyć dla konkretnej konfiguracji](https://huggingface.co/docs/transformers/llm_tutorial_optimization).
 
-### 2.2. Modele i pliki
+### 1.2. Modele i pliki
 
 #### Wykorzystane modele
 
@@ -112,7 +112,7 @@ Nieobsługiwane operacje mogą trafić na CPU, jeśli konfiguracja dopuszcza fal
 | Kontekst QNN `.bin` | Zamknięte, skompilowane instrukcje dla konkretnego sprzętu | Interfejs QNN (np. z pluginem qairt). | W omawianej ścieżce backend HTP i Hexagon NPU |
 | `.dlc` | Deep Learning Container – specyficzny kontener Qualcomma na sieć i ew. przygotowany kontekst. | Zgodne narzędzia i runtime Qualcomma | Wymaga ścisłej zgodności pliku z docelowym układem SoC i wersją oprogramowania. |
 
-### 2.4. Czym uruchomić model na CPU, GPU i NPU?
+### 1.3. Czym uruchomić model na CPU, GPU i NPU?
 
 W celu uruchomienia modelu na konkretnym hardware potrzebny jest **runtime**, który załaduje model i zorganizuje wykonanie, oraz **backend obliczeniowy**, który wykona obsługiwane operacje na danym urządzeniu.
 
@@ -153,7 +153,7 @@ Uruchomienie modelu GGUF na Hexagonie nie wymaga uprzedniej konwersji do ONNX an
 
 CPU steruje układem NPU, organizuje tokenizację tekstu i odpowiada za sampling. Jest to przewidywane i nie jest to to samo, co fallback obliczeń zrzuconych awaryjnie z akceleratora. 
 
-### 2.5. [Kwantyzacja](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html)
+### 1.4. [Kwantyzacja](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html)
 
 Kwantyzacja przybliża wartości liczbowe, używając ograniczonej reprezentacji. Mniej bitów może oznaczać mniejszy plik, mniejszy koszt pamięci i mniej danych do przesłania. Nie gwarantuje przyspieszenia, bo backend musi mieć wydajną implementację danego schematu. Może też zmienić odpowiedzi modelu.
 
@@ -209,7 +209,7 @@ Osobno sprawdzam modele od 1.7B do 32B na CPU, większą pojemność okna i dłu
 
 Przy porównaniu tego samego GGUF między urządzeniami zachowuję ten sam plik modelu. Przejście na paczkę QNN zmienia także kwantyzację i runtime, więc ten wynik porównuje całe konfiguracje, nie wyłącznie sprzęt.
 
-### 2.6. Jak czytać czas, kontekst i pamięć
+### 1.5. Jak czytać czas, kontekst i pamięć
 
 - **Prefill:** przetworzenie wejścia.
 - **TTFT:** czas od rozpoczęcia żądania do pierwszego tokenu odpowiedzi.
@@ -221,11 +221,11 @@ Raportowane TTFT i czasy generacji nie obejmują ładowania modelu. Krótszy TTF
 
 **Rozmiar pliku modelu nie jest równoznaczny ze zużyciem RAM.** Do wag dochodzą cache, aktywacje, bufory i pamięć systemu. Nie uzyskałem wiarygodnego pomiaru RAM.
 
-## 3. Co rzeczywiście udało się uruchomić
+## 2. Co rzeczywiście udało się uruchomić
 
 Najpierw zweryfikowałem, czy dane środowisko jest w ogóle w stanie zainicjować model i wygenerować odpowiedź. Do finalnych pomiarów wydajności trafiły wyłącznie stabilne, w pełni działające konfiguracje.
 
-### 3.1. Bilans środowisk
+### 2.1. Bilans środowisk
 
 | Środowisko | Wynik lokalnej próby uruchomienia | Czy podaję benchmark? |
 | :--- | :--- | :--- |
@@ -245,11 +245,11 @@ Zarejestrowałem lokalny plik GGUF i wykonałem próbną inicjalizację NPU. Wł
 **GenieX z pluginem `qairt` (Paczka QNN)**
 Do testów użyłem przygotowanej paczki QNN W4A16 dla układów Snapdragon X Elite, zgodnej z pluginem `qairt`.
 
-### 3.2. Czego nie mierzyłem
+### 2.2. Czego nie mierzyłem
 
 ORT rozpatrywałem jako alternatywę, ale jego sprawdzenie wymagałoby przygotowania lub pozyskania zgodnego modelu, konfiguracji generowania i zweryfikowania działania wybranej integracji. Byłby to osobny etap prac, wymagający dodatkowego czasu. Ograniczyłem więc zakres do działających konfiguracji GenieX. Brak wyników ORT jest decyzją o zakresie testów, nie dowodem, że ta droga nie działa.
 
-## 4. Jak mierzę i co porównuję
+## 3. Jak mierzę i co porównuję
 
 Testowałem GenieX v0.10.0 z QAIRT 2.50 i dostarczoną z nim wersją llama.cpp.
 
@@ -259,11 +259,11 @@ Każda próba jest pierwszym żądaniem w nowym procesie. Próba rozgrzewkowa mo
 
 Stany zasilania ustawiałem ręcznie: zasilacz, bateria oraz bateria z Power Saving.
 
-## 5. Wyniki: szybkość, energia i długość wejścia
+## 4. Wyniki: szybkość, energia i długość wejścia
 
 Wykresy pokazują wyniki zapisanych prób. Kreski na wykresach szybkości oznaczają minimum i maksimum, nie przedział ufności. AC oznacza zasilacz, a Power Saving to tryb oszczędzania energii.
 
-### 5.1 Szybkość: 4B i trzy stany zasilania
+### 4.1 Szybkość: 4B i trzy stany zasilania
 
 Mediana z 5 prób po 1 próbie wprowadzającej. Wyjątek to CPU z Power Saving, gdzie próba wprowadzająca przekroczyła limit czasu. Limit odpowiedzi to 128 tokenów, bez trybu thinking. Dla llama_cpp okno ma 512 tokenów, a dla qairt wynika z paczki.
 
@@ -281,7 +281,7 @@ Mediana z 5 prób po 1 próbie wprowadzającej. Wyjątek to CPU z Power Saving, 
 
 qairt miał najkrótszy TTFT: mediany 89–98 ms zależnie od stanu zasilania. CPU osiągnął 150–158 ms, NPU przez ggml-hexagon 158–187 ms, hybrid 207–220 ms, a GPU 278–291 ms. To wyniki całych ścieżek, nie samych urządzeń: qairt przetwarzał 61 tokenów wejścia, a llama_cpp 48.
 
-### 5.2 Średnia moc: ile watów pokazał pomiar?
+### 4.2 Średnia moc: ile watów pokazał pomiar?
 
 Żeby porównanie było czytelniejsze, pokazuję **średnią moc netto w watach (W)**. Waty mówią, jak szybko zużywana jest energia, a nie ile zużyto jej na całą odpowiedź. Niższa moc nie zawsze oznacza mniejszą energię zadania, jeśli model musi pracować znacznie dłużej.
 
@@ -302,7 +302,7 @@ To przybliżenia kanału SYS po odjęciu osobno zmierzonego spoczynku, nie całk
 
 Każda konfiguracja ma tylko jedną próbę, a odpowiedzi różnią się długością i treścią. Dlatego nie traktuję tych liczb jako porównania kosztu jednakowego zadania. Wynik CPU z timeoutem jest osobną obserwacją, nie ukończonym testem. Seria baterii zmienia jednocześnie źródło zasilania i tryb pracy, więc nie izoluje wpływu samego Power Saving.
 
-### 5.3 Wnioski: co wybrać na baterii i z Power Saving?
+### 4.3 Wnioski: co wybrać na baterii i z Power Saving?
 
 Samo odłączenie zasilacza nie zmieniło mocno szybkości w tym krótkim teście: decode różnił się o mniej niż 1% dla CPU i obu ścieżek NPU, o około 4,6% dla GPU i 4,1% dla hybrid.
 
@@ -310,7 +310,7 @@ Samo odłączenie zasilacza nie zmieniło mocno szybkości w tym krótkim teści
 
 NPU było więc najlepszym z badanych wyborów do tego scenariusza, choć **nie jedynym działającym**: GPU nadal generowało tekst. Niższa przybliżona moc qairt w osobnym pomiarze dodatkowo przemawia za tą ścieżką na baterii.
 
-### 5.4 Kwantyzacja: 4B na CPU i NPU przez ggml-hexagon
+### 4.4 Kwantyzacja: 4B na CPU i NPU przez ggml-hexagon
 
 Zasilacz, krótki prompt, mediana z 5 prób. Na wykresie decode, czyli tempo generowania kolejnych tokenów.
 
@@ -329,7 +329,7 @@ Osobna paczka qairt QNN W4A16 osiągnęła 21,3 tok/s. Nie umieszczam jej w tej 
 
 Q4_0 był na CPU około 3,2 razy szybszy niż F16 w decode i ponad 12 razy w prefillu. NPU miało wolniejszy decode dla wszystkich tych GGUF, ale mniejsze różnice prefillu między kwantyzacjami. To wynik tego modelu i buildu, nie ogólna hierarchia schematów.
 
-### 5.5 Liczba parametrów: od 1.7B do 32B na CPU
+### 4.5 Liczba parametrów: od 1.7B do 32B na CPU
 
 Zasilacz, Q4_K_M, non-thinking, po 5 mierzonych prób.
 
@@ -348,11 +348,11 @@ Zasilacz, Q4_K_M, non-thinking, po 5 mierzonych prób.
 - **1.7B:** największy zapas szybkości. Warto zacząć od niego przy prostych, wąskich zadaniach, ale sprawdzić, czy jakość wystarcza.
 - **8B:** około 18 tok/s przy krótkim wejściu to rozsądny punkt startowy do interaktywnej pracy.
 - **14B:** około 10,5 tok/s, czyli wolniejsza, ale nadal sensowna opcja, jeśli większy model daje lepszy wynik w konkretnym zadaniu.
-- **32B:** około 4,8 tok/s. Sam decode 128 tokenów zajmuje orientacyjnie 27 s. Wybrałbym go raczej do zadania, na którego wynik mogę poczekać, niż do szybkiej wymiany krótkich wiadomości.
+- **32B:** około 4,8 tok/s. Sam decode 128 tokenów zajmuje orientacyjnie 27 s. W praktyce jest zbyt wolny i nie ma sensu go stosować.
 
 32B jest największym modelem, dla którego uzyskałem wynik w tej serii, **nie ustalonym limitem tego laptopa**. Te próby mają krótkie wejście i okno 512 tokenów. Szybkość nie dowodzi jakości, a dłuższy dokument może znacznie zmienić responsywność.
 
-### 5.6 Pojemność okna i rzeczywista długość wejścia
+### 4.6 Pojemność okna i rzeczywista długość wejścia
 
 #### Zmiana pojemności okna przy krótkim prompcie (CPU, AC)
 
@@ -388,9 +388,9 @@ To dwa osobne wyniki: przewagę szybkości dłuższego wejścia zmierzyłem prze
 
 Pomiędzy krańcami decode CPU spadł o około 77%, a NPU o 48%. Nie przypisuję spadku jednemu mechanizmowi: wejście jest syntetyczne, serie szły od najkrótszej, bez rejestracji temperatury i taktowania. Nie zmierzyłem tu energii ani jakości pracy z dokumentami.
 
-## 6. Co wybrać do konkretnego zastosowania
+## 5. Co wybrać do konkretnego zastosowania
 
-### 6.1 Praktyczne wnioski na podstawie tych prób
+### 5.1 Praktyczne wnioski na podstawie tych prób
 
 Nie wybierałbym jednej konfiguracji do wszystkiego. Najpierw ustaliłbym, czy ważniejsze są szybkość odpowiedzi, praca na baterii, długość dokumentu czy możliwości większego modelu. Poniższe propozycje są punktem startowym do własnych zadań, nie rankingiem jakości modeli ani gwarancją zachowania każdej aplikacji.
 
@@ -402,7 +402,7 @@ Nie wybierałbym jednej konfiguracji do wszystkiego. Najpierw ustaliłbym, czy w
 | Większy model do zadania, na którego wynik możesz poczekać | 32B Q4_K_M na CPU | Około 4,8 tok/s. To największy zmierzony model, nie potwierdzony limit sprzętu |
 | Dłuższe wejście i krótka odpowiedź | `llama_cpp` na NPU | Przy 6180 tokenach wejścia i 128 wyjścia około 33 s generacji wobec 86 s na CPU |
 
-### 6.2 Moje podsumowanie
+### 5.2 Moje podsumowanie
 
 NPU okazało się użyteczne i będę sprawdzał je dalej. Nie jest jednak automatycznie najlepsze tylko dlatego, że zostało zaprojektowane do obliczeń sieci neuronowych:
 
