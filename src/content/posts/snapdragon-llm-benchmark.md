@@ -23,6 +23,14 @@ The starting point is Qwen3-4B-Instruct-2507. Later, I will test selected model 
 
 *P.S. A note on the language: this time I decided to try something new and wrote the article in Polish, my native language. I can put the text together faster and make fewer mistakes that way. LLMs seem to be very good at translation, so I used one to translate it into English. I'm curious to see how well this works.*
 
+**Key results:**
+
+- **Short input, AC power:** the CPU with Q4_0 gives about 33 tokens/s — the fastest.
+- **Battery + Power Saving:** the NPU (qairt) holds about 20 tokens/s at roughly 4 W — the best battery choice.
+- **Long input (6180 tokens):** about 33 s on the NPU versus about 86 s on the CPU.
+- **Model size:** 8B and 14B are a sensible compromise; 32B (about 4.8 tokens/s) is too slow.
+- The NPU is not automatically the best choice — it depends on the scenario.
+
 ## 1. Background
 
 ### 1.1. Hardware
@@ -407,7 +415,6 @@ I would not pick one configuration for everything. First, I would decide whether
 | Fast generation with a short input on AC power | 4B Q4_0 through GenieX `llama_cpp` on the CPU | About 33 tokens/s. In a separate run, the CPU had higher average net power than `qairt` |
 | Battery use with Power Saving | NPU: GenieX `qairt`, or alternatively `llama_cpp` | 20.4 and 16.7 tokens/s respectively. `qairt` had about 4 W average net power in a separate measurement |
 | A larger model for interactive work | Start with 8B or 14B Q4_K_M on the CPU | About 18.4 and 10.5 tokens/s with a short input. Evaluate quality on your own task |
-| A larger model for a task where you can wait | 32B Q4_K_M on the CPU | About 4.8 tokens/s. This is the largest measured model, not a confirmed hardware limit |
 | A longer input and short response | `llama_cpp` on the NPU | With 6180 input tokens and 128 output tokens, about 33 seconds of generation versus 86 seconds on the CPU |
 
 ### 5.2. My Takeaways
@@ -417,7 +424,7 @@ The NPU turned out to be useful, and I will keep experimenting with it. It is no
 - **Short input and AC power:** the CPU with Q4_0 gave the highest decode throughput for the tested 4B model. I don't need to force the NPU into the workflow for a quick response.
 - **Power Saving:** the NPU maintained responsiveness better than the GPU and hybrid mode. `qairt` is my first candidate for battery use, also because of its lower approximate power reading.
 - **Longer input:** ggml-hexagon could beat the CPU on total response time. A short-question benchmark is not enough to choose a configuration for documents.
-- **Model size:** 8B and 14B look reasonable in terms of speed, while 32B is an option when I can accept waiting. More parameters only make sense if they improve the result for the task.
+- **Model size:** 8B and 14B look reasonable in terms of speed. 32B (about 4.8 tokens/s) is simply too slow in practice. More parameters only make sense if they improve the result for the task.
 
 The next step is to check whether the selected models actually handle real tasks well: editing text, summarizing notes, extracting information from documents, or helping with code.
 

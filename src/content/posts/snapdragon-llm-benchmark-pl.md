@@ -21,6 +21,14 @@ Dodatkową motywacją jest dla mnie chęć lepszego poznania technologii i chę�
 
 Punktem startowym jest Qwen3-4B-Instruct-2507. Później sprawdzę wybrane rozmiary modeli, kwantyzacje i długości kontekstu. Porównania dotyczą natywnego Windows ARM64 na tym laptopie.
 
+**Najważniejsze wyniki:**
+
+- **Krótkie wejście, zasilacz:** CPU z Q4_0 daje około 33 tok/s — najszybciej.
+- **Bateria + Power Saving:** NPU (qairt) utrzymuje około 20 tok/s przy około 4 W — najlepszy wybór na baterii.
+- **Długie wejście (6180 tokenów):** generacja około 33 s na NPU wobec około 86 s na CPU.
+- **Rozmiar modelu:** 8B i 14B to rozsądny kompromis; 32B (około 4,8 tok/s) jest zbyt wolne.
+- NPU nie jest automatycznie najlepszym wyborem — zależy od scenariusza.
+
 ## 1. Podstawowe informacje
 
 ### 1.1. Sprzęt
@@ -399,7 +407,6 @@ Nie wybierałbym jednej konfiguracji do wszystkiego. Najpierw ustaliłbym, czy w
 | Szybkie generowanie przy krótkim wejściu na zasilaczu | 4B Q4_0 przez GenieX `llama_cpp` na CPU | Około 33 tok/s. W osobnej próbie CPU miał wyższą średnią moc netto niż qairt |
 | Praca na baterii z Power Saving | NPU: GenieX `qairt`, alternatywnie `llama_cpp` | Odpowiednio 20,4 i 16,7 tok/s. qairt miał około 4 W średniej mocy netto w osobnym pomiarze |
 | Większy model do interaktywnej pracy | Zacznij od 8B lub 14B Q4_K_M na CPU | Około 18,4 i 10,5 tok/s przy krótkim wejściu. Jakość trzeba ocenić na własnym zadaniu |
-| Większy model do zadania, na którego wynik możesz poczekać | 32B Q4_K_M na CPU | Około 4,8 tok/s. To największy zmierzony model, nie potwierdzony limit sprzętu |
 | Dłuższe wejście i krótka odpowiedź | `llama_cpp` na NPU | Przy 6180 tokenach wejścia i 128 wyjścia około 33 s generacji wobec 86 s na CPU |
 
 ### 5.2 Moje podsumowanie
@@ -409,7 +416,7 @@ NPU okazało się użyteczne i będę sprawdzał je dalej. Nie jest jednak autom
 - **Krótkie wejście i zasilacz:** CPU z Q4_0 dawało najwyższe tempo decode badanego 4B. Do szybkiej odpowiedzi nie muszę na siłę używać NPU.
 - **Power Saving:** NPU zachowało responsywność lepiej niż GPU i hybrid. qairt jest dla mnie pierwszym kandydatem do pracy na baterii, również ze względu na niższy przybliżony odczyt mocy. 
 - **Dłuższe wejście:** ggml-hexagon potrafił wygrać z CPU czasem całej odpowiedzi. Benchmark krótkiego pytania nie wystarcza do wyboru konfiguracji dla dokumentów.
-- **Wielkość modelu:** 8B i 14B wyglądają rozsądnie pod względem szybkości, a 32B jest opcją, gdy mogę zaakceptować czekanie. Więcej parametrów ma sens tylko wtedy, gdy poprawia wynik konkretnego zadania.
+- **Wielkość modelu:** 8B i 14B wyglądają rozsądnie pod względem szybkości. 32B (około 4,8 tok/s) jest w praktyce zbyt wolne. Więcej parametrów ma sens tylko wtedy, gdy poprawia wynik konkretnego zadania.
 
 Następny krok to sprawdzić, czy wybrane modele rzeczywiście radzą sobie z realnymi zadaniami: poprawianiem tekstu, streszczaniem notatek, wydobywaniem informacji z dokumentów albo pomocą przy kodzie. 
 
