@@ -1,0 +1,116 @@
+---
+interface Props {
+  lang?: 'pl' | 'en';
+}
+const { lang = 'en' } = Astro.props;
+const pl = lang === 'pl';
+
+const labels = {
+  title: pl ? 'Szybkość a średnia moc' : 'Decode speed vs average power',
+  decode: 'Decode (tok/s)',
+  power: pl ? 'Średnia moc (W)' : 'Average power (W)',
+  ac: pl ? 'Zasilacz' : 'AC',
+  battery: pl ? 'Bateria' : 'Battery',
+  ps: 'Power Saving',
+  devices: ['CPU', 'GPU', 'NPU · QNN', 'Hybrid · GGUF', 'NPU · GGUF'],
+  note: pl
+    ? 'Mediana decode z 5 prób; moc to pojedynczy odczyt netto kanału SYS (po odjęciu spoczynku). CPU z Power Saving nie ukończył próby.'
+    : 'Decode is the median of five runs; power is a single net SYS-channel reading (idle subtracted). The CPU with Power Saving did not finish.',
+};
+
+// Values from recorded CSVs (article-chart-data.csv, energy-estimates.csv).
+const decode = {
+  ac: [33.0, 22.9, 21.3, 19.6, 16.8],
+  battery: [33.1, 21.8, 21.4, 18.8, 16.9],
+  ps: [null, 13.6, 20.4, 11.3, 16.7],
+};
+const power = {
+  ac: [44.0, 17.9, 9.0, null, null],
+  ps: [9.4, 7.9, 4.1, null, null],
+};
+
+const chartData = JSON.stringify({ labels, decode, power });
+---
+
+<figure class="interactive-chart" data-speed-power-chart>
+  <div id="speed-power-chart" class="interactive-chart-plot" role="img" aria-label={labels.title}></div>
+  <figcaption class="interactive-chart-note">{labels.note}</figcaption>
+  <script is:inline define:vars={{ chartData }}>
+    (function () {
+      var d = JSON.parse(chartData);
+      var labels = d.labels;
+      var C = { ac: '#2563eb', battery: '#0f766e', ps: '#b45309' };
+
+      function bar(name, ys, color, unit) {
+        return {
+          type: 'bar',
+          name: name,
+          x: labels.devices,
+          y: ys,
+          marker: { color: color },
+          hovertemplate: '%{y:.1f} ' + unit + '<br>%{x}<extra>' + name + '</extra>',
+        };
+      }
+
+      var decodeTraces = [
+        bar(labels.ac, d.decode.ac, C.ac, labels.decode),
+        bar(labels.battery, d.decode.battery, C.battery, labels.decode),
+        bar(labels.ps, d.decode.ps, C.ps, labels.decode),
+      ];
+      var powerTraces = [
+        bar(labels.ac, d.power.ac, C.ac, labels.power),
+        bar(labels.ps, d.power.ps, C.ps, labels.power),
+      ];
+      var allTraces = decodeTraces.concat(powerTraces);
+
+      var layout = {
+        barmode: 'group',
+        title: { text: labels.title, font: { size: 17, color: '#0f172a' } },
+        paper_bgcolor: '#f8fafc',
+        plot_bgcolor: '#f8fafc',
+        font: { family: 'Segoe UI, Arial, sans-serif', color: '#0f172a' },
+        xaxis: { tickangle: -18, automargin: true, gridcolor: '#cbd5e1', linecolor: '#cbd5e1' },
+        yaxis: { title: { text: labels.decode }, gridcolor: '#cbd5e1', zeroline: false, linecolor: '#cbd5e1' },
+        margin: { t: 56, b: 72, l: 60, r: 12 },
+        legend: { orientation: 'h', x: 0, y: 1.14 },
+        updatemenus: [{
+          type: 'buttons',
+          direction: 'right',
+          x: 0, y: 1.18, xanchor: 'left', yanchor: 'top',
+          pad: { r: 6, t: 6 },
+          buttons: [
+            {
+              label: labels.decode, method: 'update',
+              args: [{ visible: [true, true, true, false, false] }, { 'yaxis.title.text': labels.decode }],
+            },
+            {
+              label: labels.power, method: 'update',
+              args: [{ visible: [false, false, false, true, true] }, { 'yaxis.title.text': labels.power }],
+            },
+          ],
+        }],
+      };
+
+      var config = { responsive: true, displayModeBar: false };
+
+      function render() {
+        window.Plotly.newPlot('speed-power-chart', allTraces, layout, config);
+      }
+
+      function fail() {
+        var el = document.getElementById('speed-power-chart');
+        if (el) el.textContent = labels.note;
+      }
+
+      if (window.Plotly) {
+        render();
+      } else {
+        var s = document.createElement('script');
+        s.src = 'https://cdn.plot.ly/plotly-2.35.2.min.js';
+        s.onload = render;
+        s.onerror = fail;
+        document.head.appendChild(s);
+      }
+    })();
+  </script>
+</figure>

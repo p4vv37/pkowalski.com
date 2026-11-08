@@ -46,6 +46,8 @@
 .prose .has-text-align-right { text-align: right; }
 .prose .aligncenter { margin-inline: auto; }
 .prose .wp-block-video, .prose .wp-block-image { max-width: 100%; }
+.prose .interactive-chart { margin-block: 2rem; }
+.prose .interactive-chart-plot { width: 100%; height: 440px; background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; }
 @media (max-width: 600px) {
   .prose { font-size: .96rem; line-height: 1.85; }
   .prose h2 { font-size: 1.45rem; }

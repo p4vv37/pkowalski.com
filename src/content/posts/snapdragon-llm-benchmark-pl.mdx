@@ -8,6 +8,8 @@ translationKey: "snapdragon-llm-benchmark"
 tags: ["LLM", "Snapdragon", "NPU"]
 draft: false
 ---
+import SpeedPowerChart from '../../components/SpeedPowerChart.astro';
+
 
 W swoim laptopie Lenovo [Yoga Slim 7x](https://www.lenovo.com/pl/pl/p/laptops/yoga/ai-laptops/yoga-slim-7x-gen-9-14-inch-snapdragon/len101y0049) mam oprócz standardowego CPU i GPU jeszcze jeden procesor: NPU (Neural Processing Unit), przeznaczony do energooszczędnego wykonywania obliczeń sieci neuronowych. Na co dzień ten NPU, może poza [rozmywaniem tła podczas rozmowy](https://learn.microsoft.com/en-us/windows/apps/develop/windows-integration/studio-effects) czy [indeksowaniem plików w tle](https://support.microsoft.com/en-us/windows/ai/ai-features/copilot-plus-pcs), pozostaje bezczynny. Postanowiłem więc sprawdzić, co jeszcze da się z nim zrobić, jaką oferuje wydajność i czy w praktyce warto z niego korzystać.
 
@@ -28,6 +30,8 @@ Punktem startowym jest Qwen3-4B-Instruct-2507. Później sprawdzę wybrane rozmi
 - **Długie wejście (6180 tokenów):** generacja około 33 s na NPU wobec około 86 s na CPU.
 - **Rozmiar modelu:** 8B i 14B to rozsądny kompromis; 32B (około 4,8 tok/s) jest zbyt wolne.
 - NPU nie jest automatycznie najlepszym wyborem — zależy od scenariusza.
+
+<SpeedPowerChart lang="pl" />
 
 ## 1. Podstawowe informacje
 
@@ -275,7 +279,7 @@ Wykresy pokazują wyniki zapisanych prób. Kreski na wykresach szybkości oznacz
 
 Mediana z 5 prób po 1 próbie wprowadzającej. Wyjątek to CPU z Power Saving, gdzie próba wprowadzająca przekroczyła limit czasu. Limit odpowiedzi to 128 tokenów, bez trybu thinking. Dla llama_cpp okno ma 512 tokenów, a dla qairt wynika z paczki.
 
-<img src="../media/snapdragon-llm-benchmark/throughput-power-states.en.svg" alt="Tempo decode w trzech stanach zasilania, z zakresem min–max" lang="en" loading="lazy" decoding="async">
+<img src="../media/snapdragon-llm-benchmark/throughput-power-states.en.svg" alt="Tempo decode w trzech stanach zasilania, z zakresem min–max" lang="en" loading="lazy" decoding="async" />
 
 | Ścieżka | decode AC (tok/s) | decode bateria (tok/s) | decode bateria + Power Saving (tok/s) |
 | --- | --- | --- | --- |
@@ -285,7 +289,7 @@ Mediana z 5 prób po 1 próbie wprowadzającej. Wyjątek to CPU z Power Saving, 
 | llama_cpp hybrid | 19,6 | 18,8 | 11,3 |
 | llama_cpp NPU (ggml-hexagon) | 16,8 | 16,9 | 16,7 |
 
-<img src="../media/snapdragon-llm-benchmark/ttft-power-states.en.svg" alt="TTFT w trzech stanach zasilania, z zakresem min–max" lang="en" loading="lazy" decoding="async">
+<img src="../media/snapdragon-llm-benchmark/ttft-power-states.en.svg" alt="TTFT w trzech stanach zasilania, z zakresem min–max" lang="en" loading="lazy" decoding="async" />
 
 qairt miał najkrótszy TTFT: mediany 89–98 ms zależnie od stanu zasilania. CPU osiągnął 150–158 ms, NPU przez ggml-hexagon 158–187 ms, hybrid 207–220 ms, a GPU 278–291 ms. To wyniki całych ścieżek, nie samych urządzeń: qairt przetwarzał 61 tokenów wejścia, a llama_cpp 48.
 
@@ -295,7 +299,7 @@ qairt miał najkrótszy TTFT: mediany 89–98 ms zależnie od stanu zasilania. C
 
 To przybliżenia kanału SYS po odjęciu osobno zmierzonego spoczynku, nie całkowity pobór laptopa z gniazdka ani pomiar samego NPU. Średnią obliczyłem z odczytanej energii i czasu uruchomienia, razem z ładowaniem modelu. Historyczne odczyty obu serii wymagały różnego przeliczenia jednostek. Dokładny zakres licznika i błąd pomiaru nie są ustalone.
 
-<img src="../media/snapdragon-llm-benchmark/energy-net-power.en.svg" alt="Przybliżona średnia moc netto SYS" lang="en" loading="lazy" decoding="async">
+<img src="../media/snapdragon-llm-benchmark/energy-net-power.en.svg" alt="Przybliżona średnia moc netto SYS" lang="en" loading="lazy" decoding="async" />
 
 | Konfiguracja | Średnia moc netto SYS, W ≈ | Czas uruchomienia, s | Tokeny odpowiedzi |
 | --- | ---: | ---: | ---: |
@@ -322,7 +326,7 @@ NPU było więc najlepszym z badanych wyborów do tego scenariusza, choć **nie 
 
 Zasilacz, krótki prompt, mediana z 5 prób. Na wykresie decode, czyli tempo generowania kolejnych tokenów.
 
-<img src="../media/snapdragon-llm-benchmark/quantization-decode.en.svg" alt="Wpływ kwantyzacji GGUF na decode CPU i NPU" lang="en" loading="lazy" decoding="async">
+<img src="../media/snapdragon-llm-benchmark/quantization-decode.en.svg" alt="Wpływ kwantyzacji GGUF na decode CPU i NPU" lang="en" loading="lazy" decoding="async" />
 
 | Kwantyzacja | CPU | NPU (ggml-hexagon) |
 | --- | --- | --- |
@@ -333,7 +337,7 @@ Zasilacz, krótki prompt, mediana z 5 prób. Na wykresie decode, czyli tempo gen
 
 Osobna paczka qairt QNN W4A16 osiągnęła 21,3 tok/s. Nie umieszczam jej w tej samej serii kwantyzacji GGUF.
 
-<img src="../media/snapdragon-llm-benchmark/quantization-prefill.en.svg" alt="Wpływ kwantyzacji GGUF na prefill CPU i NPU" lang="en" loading="lazy" decoding="async">
+<img src="../media/snapdragon-llm-benchmark/quantization-prefill.en.svg" alt="Wpływ kwantyzacji GGUF na prefill CPU i NPU" lang="en" loading="lazy" decoding="async" />
 
 Q4_0 był na CPU około 3,2 razy szybszy niż F16 w decode i ponad 12 razy w prefillu. NPU miało wolniejszy decode dla wszystkich tych GGUF, ale mniejsze różnice prefillu między kwantyzacjami. To wynik tego modelu i buildu, nie ogólna hierarchia schematów.
 
@@ -341,7 +345,7 @@ Q4_0 był na CPU około 3,2 razy szybszy niż F16 w decode i ponad 12 razy w pre
 
 Zasilacz, Q4_K_M, non-thinking, po 5 mierzonych prób.
 
-<img src="../media/snapdragon-llm-benchmark/model-size-cpu.en.svg" alt="Tempo decode i TTFT modeli Qwen3 od 1.7B do 32B na CPU" lang="en" loading="lazy" decoding="async">
+<img src="../media/snapdragon-llm-benchmark/model-size-cpu.en.svg" alt="Tempo decode i TTFT modeli Qwen3 od 1.7B do 32B na CPU" lang="en" loading="lazy" decoding="async" />
 
 | Liczba parametrów | decode (tok/s) | prefill (tok/s) | TTFT (ms) |
 | --- | --- | --- | --- |
@@ -366,7 +370,7 @@ Zasilacz, Q4_K_M, non-thinking, po 5 mierzonych prób.
 
 Zmieniałem pojemność okna, zostawiając 52 tokeny wejścia i 128 tokenów odpowiedzi. Historia rosła więc do około 180 pozycji, nie do 65k czy 262k. Poniżej mediany TTFT z trzech prób na komórkę.
 
-<img src="../media/snapdragon-llm-benchmark/context-capacity-ttft.en.svg" alt="Mapa median TTFT przy zwiększaniu pojemności okna i stałym krótkim wejściu" lang="en" loading="lazy" decoding="async">
+<img src="../media/snapdragon-llm-benchmark/context-capacity-ttft.en.svg" alt="Mapa median TTFT przy zwiększaniu pojemności okna i stałym krótkim wejściu" lang="en" loading="lazy" decoding="async" />
 
 | Liczba parametrów | 512 | 16 384 | 65 536 | 131 072 | 262 144 |
 | --- | --- | --- | --- | --- | --- |
@@ -380,7 +384,7 @@ Przy większych limitach TTFT wzrastał, ale nie monotonicznie. Nie ustaliłem p
 
 Na zasilaczu, z profilem maksymalnej wydajności, zostawiłem okno 16 384 tokenów i zwiększałem długość syntetycznego wejścia z powtarzanych akapitów. Najpierw wykonałem serię CPU, potem NPU przez GenieX `llama_cpp`, czyli ggml-hexagon, nie qairt. Użyłem tego samego zarejestrowanego Qwen3-4B-Instruct-2507 Q4_0, identycznych promptów, temperatury 0 i trzech mierzonych prób na komórkę, po jednej próbie wprowadzającej. Każda próba to nowy proces, a każda odpowiedź miała dokładnie 128 raportowanych tokenów i kończyła się limitem długości.
 
-<img src="../media/snapdragon-llm-benchmark/input-length-cpu-npu.en.svg" alt="Wpływ długości wejścia na TTFT, decode i czas generacji CPU oraz NPU" lang="en" loading="lazy" decoding="async">
+<img src="../media/snapdragon-llm-benchmark/input-length-cpu-npu.en.svg" alt="Wpływ długości wejścia na TTFT, decode i czas generacji CPU oraz NPU" lang="en" loading="lazy" decoding="async" />
 
 | Tokeny wejścia | TTFT CPU | TTFT NPU | Decode CPU, tok/s | Decode NPU, tok/s | Cała generacja CPU | Cała generacja NPU |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
