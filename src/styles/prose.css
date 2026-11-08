@@ -31,7 +31,9 @@
 .prose blockquote { margin: 2rem 0; padding: .5rem 0 .5rem 24px; border-left: 2px solid var(--accent); color: var(--muted); }
 .prose blockquote p:last-child { margin-bottom: 0; }
 .prose hr { height: 1px; border: 0; background: var(--line); margin-block: 2.5rem; }
-.prose table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; margin-block: 2rem; }
+.prose table { display: block; width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; overflow-wrap: normal; border-collapse: collapse; margin-block: 2rem; }
+.prose table:focus-visible { outline-offset: 2px; }
+.prose table th, .prose table td { min-width: 7rem; }
 .prose th, .prose td { padding: 12px 16px; border: 1px solid var(--line); text-align: left; }
 .prose th { color: var(--text); background: var(--panel); }
 .prose .wp-block-columns { display: flex; gap: 24px; margin-bottom: 1.7rem; }

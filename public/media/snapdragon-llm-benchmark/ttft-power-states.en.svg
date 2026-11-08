@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="750" viewBox="0 0 1100 750" role="img" aria-labelledby="title desc">
+<title id="title">TTFT · power states</title><desc id="desc">Qwen3-4B-Instruct-2507; GGUF Q4_0 and separate QNN W4A16 artifact. Local measurements. Five measured runs. CPU Power Saving timed out during lead-in. TTFT excludes loading. Prompt: 48 / 61 tokens. GGUF Q4_0; QNN W4A16 is a separate artifact.</desc>
+<rect width="1100" height="750" fill="#f8fafc"/>
+<g font-family="Segoe UI, Arial, sans-serif" fill="#0f172a">
+<rect x="30" y="63" width="17" height="17" fill="#2563eb"/>
+<text x="55" y="77" font-size="15" text-anchor="start" >AC</text>
+<rect x="230" y="63" width="17" height="17" fill="#0f766e"/>
+<text x="255" y="77" font-size="15" text-anchor="start" >Battery</text>
+<rect x="430" y="63" width="17" height="17" fill="#b45309"/>
+<text x="455" y="77" font-size="15" text-anchor="start" >Power Saving</text>
+<path d="M330.0 90 V680" stroke="#cbd5e1"/>
+<text x="330.0" y="707" font-size="14" text-anchor="middle" >0</text>
+<path d="M442.0 90 V680" stroke="#cbd5e1"/>
+<text x="442.0" y="707" font-size="14" text-anchor="middle" >60</text>
+<path d="M554.0 90 V680" stroke="#cbd5e1"/>
+<text x="554.0" y="707" font-size="14" text-anchor="middle" >120</text>
+<path d="M666.0 90 V680" stroke="#cbd5e1"/>
+<text x="666.0" y="707" font-size="14" text-anchor="middle" >180</text>
+<path d="M778.0 90 V680" stroke="#cbd5e1"/>
+<text x="778.0" y="707" font-size="14" text-anchor="middle" >240</text>
+<path d="M890.0 90 V680" stroke="#cbd5e1"/>
+<text x="890.0" y="707" font-size="14" text-anchor="middle" >300</text>
+<text x="30" y="127" font-size="17" text-anchor="start" font-weight="600">CPU</text>
+<rect x="330" y="110" width="294.1306666666667" height="20" fill="#2563eb"/>
+<path d="M558.8925333333333 120 H645.8885333333333 M558.8925333333333 115 V125 M645.8885333333333 115 V125" stroke="#0f172a"/>
+<rect x="330" y="140" width="281.0957333333333" height="20" fill="#0f766e"/>
+<path d="M571.9442666666666 150 H640.6581333333334 M571.9442666666666 145 V155 M640.6581333333334 145 V155" stroke="#0f172a"/>
+<text x="343" y="187" font-size="15" text-anchor="start" fill="#92400e">Timeout</text>
+<text x="30" y="245" font-size="17" text-anchor="start" font-weight="600">GPU</text>
+<rect x="330" y="228" width="519.3066666666666" height="20" fill="#2563eb"/>
+<path d="M841.1866666666665 238 H855.672 M841.1866666666665 233 V243 M855.672 233 V243" stroke="#0f172a"/>
+<rect x="330" y="258" width="529.2597333333333" height="20" fill="#0f766e"/>
+<path d="M852.0208 268 H862.3061333333334 M852.0208 263 V273 M862.3061333333334 263 V273" stroke="#0f172a"/>
+<rect x="330" y="288" width="543.5304000000001" height="20" fill="#b45309"/>
+<path d="M868.328 298 H883.0504 M868.328 293 V303 M883.0504 293 V303" stroke="#0f172a"/>
+<text x="30" y="363" font-size="17" text-anchor="start" font-weight="600">NPU · QNN</text>
+<rect x="330" y="346" width="167.0592" height="20" fill="#2563eb"/>
+<path d="M494.7930666666666 356 H507.13733333333334 M494.7930666666666 351 V361 M507.13733333333334 351 V361" stroke="#0f172a"/>
+<rect x="330" y="376" width="170.29413333333332" height="20" fill="#0f766e"/>
+<path d="M495.7581333333334 386 H504.9906666666667 M495.7581333333334 381 V391 M504.9906666666667 381 V391" stroke="#0f172a"/>
+<rect x="330" y="406" width="183.37573333333336" height="20" fill="#b45309"/>
+<path d="M505.5917333333333 416 H516.1010666666666 M505.5917333333333 411 V421 M516.1010666666666 411 V421" stroke="#0f172a"/>
+<text x="30" y="481" font-size="17" text-anchor="start" font-weight="600">Hybrid · GGUF</text>
+<rect x="330" y="464" width="386.4970666666667" height="20" fill="#2563eb"/>
+<path d="M713.3573333333334 474 H717.1224 M713.3573333333334 469 V479 M717.1224 469 V479" stroke="#0f172a"/>
+<rect x="330" y="494" width="390.0008" height="20" fill="#0f766e"/>
+<path d="M716.0546666666667 504 H722.1456000000001 M716.0546666666667 499 V509 M722.1456000000001 499 V509" stroke="#0f172a"/>
+<rect x="330" y="524" width="411.16693333333336" height="20" fill="#b45309"/>
+<path d="M738.716 534 H808.5778666666668 M738.716 529 V539 M808.5778666666668 529 V539" stroke="#0f172a"/>
+<text x="30" y="599" font-size="17" text-anchor="start" font-weight="600">NPU · GGUF</text>
+<rect x="330" y="582" width="295.05653333333333" height="20" fill="#2563eb"/>
+<path d="M624.6234666666667 592 H630.8861333333333 M624.6234666666667 587 V597 M630.8861333333333 587 V597" stroke="#0f172a"/>
+<rect x="330" y="612" width="307.90293333333335" height="20" fill="#0f766e"/>
+<path d="M626.2344 622 H640.5573333333332 M626.2344 617 V627 M640.5573333333332 617 V627" stroke="#0f172a"/>
+<rect x="330" y="642" width="349.7144" height="20" fill="#b45309"/>
+<path d="M660.8648000000001 652 H704.556 M660.8648000000001 647 V657 M704.556 647 V657" stroke="#0f172a"/>
+<text x="610" y="733" font-size="15" text-anchor="middle" >TTFT (ms)</text>
+</g></svg>

@@ -31,17 +31,49 @@ date: "2026-10-25"
 description: "A short description for the archive and search results."
 image: "/media/article-title/preview.png"
 tags: ["PyTorch", "Computer graphics"]
+lang: en
 draft: true
 ---
 
 Write the article in **Markdown**.
 
-![Image description](../media/article-title/illustration.png)
+<img src="../media/article-title/illustration.png" alt="Image description" loading="lazy" />
 ```
 
-Place images in `public/media/article-title/`. The `image` field is optional and supplies the thumbnail shown on the home page. Relative image paths in the article work with both the custom domain and the `github.io` project URL.
+Place images in `public/media/article-title/`. The `image` field is optional and supplies the thumbnail shown on the home page. For public images in article bodies, use an HTML `<img>` with a browser-relative `../media/…` path as above; this works with both the custom domain and the `github.io` project URL. Markdown `![…](relative-path)` is instead resolved by Astro as a source asset, not relative to `public/`.
 
 Drafts appear in the local development server with a **Draft** label. They are excluded from production builds, the published archive and RSS. Set `draft: false` when a post is ready, then commit and push to `main`.
+
+## Article languages (PL/EN)
+
+Only posts support `lang: en` or `lang: pl`; omitted `lang` defaults to English. Pages and the navigation/footer remain English. Do not infer language from a filename (for example, the legacy `canvasstorystudio-pl` post is English).
+
+For translations, create two independent Markdown/MDX posts, each with its own unique single-segment `slug`, and give both the same nonempty `translationKey`:
+
+```yaml
+# English post
+slug: local-llms-snapdragon-x-elite
+lang: en
+translationKey: snapdragon-llm-benchmark
+# Polish post (in a separate file, with its own title/date/description/body)
+slug: local-llms-snapdragon-x-elite-pl
+lang: pl
+translationKey: snapdragon-llm-benchmark
+```
+
+All other required frontmatter remains unchanged. The generator adds `lang: en`; change it for Polish. Leave `translationKey` out for independent entries. Build validation rejects duplicate slugs (including across pages), reserved routes/legacy aliases, invalid multi-segment slugs and duplicate `(translationKey, lang)` pairs, including drafts.
+
+The article-level PL/EN navigation uses ordinary links and only appears when both versions are published. A draft never becomes a switch/`hreflang` target, even in local preview. Each published version has its own canonical URL, document language and JSON-LD `inLanguage`; paired versions have reciprocal absolute `hreflang` links, including under `BASE_PATH`. There is no redirect, language detection or site-wide translation.
+
+Both versions deliberately remain separate entries in home/archive lists, counts, mixed-language older/newer navigation and the single RSS feed. Paired posts (and Polish standalone posts) carry language labels; RSS has no fixed English channel language. Existing independent English posts retain their labels and routes unchanged. Article tables scroll horizontally on narrow screens and become keyboard-focusable when JavaScript is enabled; reading and the language switch do not require JavaScript.
+
+`npm test` covers pairing, draft exclusion, validation and base-path alternate URLs. `npm run verify` checks language, self canonical/OG/JSON-LD, reciprocal links and the switch for every built post. To require the approved NPU pair as a publication gate:
+
+```bash
+REQUIRE_NPU_ARTICLES=1 npm run verify
+# With a project URL, use the same SITE_URL and BASE_PATH as the build:
+SITE_URL=https://p4vv37.github.io BASE_PATH=/pkowalski.com REQUIRE_NPU_ARTICLES=1 npm run verify
+```
 
 ## Edit existing content
 
@@ -95,14 +127,14 @@ To test the project URL locally:
 
 ```bash
 SITE_URL=https://p4vv37.github.io BASE_PATH=/pkowalski.com npm run build
-BASE_PATH=/pkowalski.com npm run verify
+SITE_URL=https://p4vv37.github.io BASE_PATH=/pkowalski.com npm run verify
 ```
 
 To build for the custom domain:
 
 ```bash
 SITE_URL=https://pkowalski.com BASE_PATH=/ npm run build
-npm run verify
+SITE_URL=https://pkowalski.com npm run verify
 ```
 
 ### Custom domain

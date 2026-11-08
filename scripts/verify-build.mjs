@@ -4,11 +4,17 @@ import assert from 'node:assert/strict';
 import { parseHTML } from 'linkedom';
 import { stripBase } from '../src/lib/paths.mjs';
 import { renderWordPress } from '../src/lib/wordpress.mjs';
+import { articleAlternates, articlePath, articleLanguage, validateArticleEntries, publishedTranslations } from '../src/lib/article-languages.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const dist = resolve(root, 'dist');
 const base = process.env.BASE_PATH || '/';
 const imported = [];
+const entries = [];
+const scalar = (frontmatter, key) => {
+  const value = frontmatter.match(new RegExp(`^${key}:\\s*(?:"([^"]*)"|'([^']*)'|([^\\s#]+))`, 'm'));
+  return value?.[1] ?? value?.[2] ?? value?.[3];
+};
 let publishedPostCount = 0;
 function readContent(path, collection) {
   for (const entry of readdirSync(path, { withFileTypes: true })) {
@@ -17,7 +23,12 @@ function readContent(path, collection) {
     if (!/\.(?:md|mdx)$/.test(file)) continue;
     const source = readFileSync(file, 'utf8');
     const frontmatter = source.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/)?.[1] || '';
-    if (/^draft:\s*true\s*(?:#.*)?$/m.test(frontmatter)) continue;
+    const draft = /^draft:\s*true\s*(?:#.*)?$/m.test(frontmatter);
+    entries.push({ collection, id: relative(root, file), data: {
+      slug: scalar(frontmatter, 'slug'), lang: scalar(frontmatter, 'lang') || 'en',
+      translationKey: scalar(frontmatter, 'translationKey'), draft,
+    } });
+    if (draft) continue;
     if (collection === 'posts') publishedPostCount++;
     const id = frontmatter.match(/^wordpressId:\s*(\d+)/m)?.[1];
     if (!id) continue;
@@ -103,6 +114,48 @@ for (const file of files.filter((file) => /\/demo\/models\/.*\/model\.json$/.tes
 }
 const rss = readFileSync(join(dist, 'rss.xml'), 'utf8');
 const archive = parseHTML(readFileSync(join(dist, 'archive/index.html'), 'utf8')).document;
+const posts = entries.filter((entry) => entry.collection === 'posts');
+validateArticleEntries(posts, entries.filter((entry) => entry.collection === 'pages'));
+const site = process.env.SITE_URL || 'https://www.pkowalski.com';
+assert.doesNotMatch(rss, /<language>en<\/language>/, 'Mixed RSS must not declare a fixed English channel language');
+for (const post of posts) {
+  const file = join(dist, post.data.slug, 'index.html');
+  if (post.data.draft) {
+    assert.ok(!existsSync(file), `Draft must not be built: ${post.data.slug}`);
+    assert.ok(!rss.includes(articlePath(post, base)), `Draft must not appear in RSS: ${post.data.slug}`);
+    continue;
+  }
+  const doc = parseHTML(readFileSync(file, 'utf8')).document;
+  const self = new URL(articlePath(post, base), site).href;
+  assert.equal(doc.documentElement.lang, articleLanguage(post), `${post.data.slug}: html language`);
+  assert.equal(doc.querySelector('link[rel="canonical"]').getAttribute('href'), self, `${post.data.slug}: self canonical`);
+  assert.equal(doc.querySelector('meta[property="og:url"]').getAttribute('content'), self, `${post.data.slug}: OG URL`);
+  const actual = [...doc.querySelectorAll('link[rel="alternate"][hreflang]')].map((node) => ({ lang: node.getAttribute('hreflang'), href: node.getAttribute('href') })).sort((a, b) => a.lang.localeCompare(b.lang));
+  assert.deepEqual(actual, articleAlternates(post, posts, site, base), `${post.data.slug}: reciprocal published alternates`);
+  const jsonld = JSON.parse(doc.querySelector('script[type="application/ld+json"]').textContent);
+  assert.equal(jsonld.inLanguage, articleLanguage(post), `${post.data.slug}: JSON-LD language`);
+  assert.equal(jsonld.url, self, `${post.data.slug}: JSON-LD URL`);
+  const versions = publishedTranslations(post, posts);
+  const switcher = doc.querySelector('.article-languages');
+  assert.equal(Boolean(switcher), versions.length > 0, `${post.data.slug}: switch only for published pairs`);
+  if (switcher) {
+    assert.equal(switcher.querySelector('[aria-current="page"]').getAttribute('lang'), articleLanguage(post));
+    for (const other of versions.filter((version) => version.id !== post.id)) {
+      assert.ok(switcher.querySelector(`a[href="${articlePath(other, base)}"][hreflang="${articleLanguage(other)}"][lang="${articleLanguage(other)}"]`), `${post.data.slug}: accessible counterpart link`);
+    }
+  }
+  assert.ok(rss.includes(self), `${post.data.slug}: RSS URL`);
+}
+// Opt-in publication gate: normal legacy-only checkouts can still be verified.
+if (process.env.REQUIRE_NPU_ARTICLES === '1') {
+  for (const [slug, lang] of [['local-llms-snapdragon-x-elite', 'en'], ['local-llms-snapdragon-x-elite-pl', 'pl']]) {
+    const post = posts.find((entry) => entry.data.slug === slug);
+    assert.ok(post && !post.data.draft, `Missing published NPU article: ${slug}`);
+    assert.equal(post.data.lang, lang);
+    assert.equal(post.data.translationKey, 'snapdragon-llm-benchmark');
+    assert.equal(publishedTranslations(post, posts).length, 2);
+  }
+}
 for (const file of ['index.html', 'contact/index.html']) {
   const doc = parseHTML(readFileSync(join(dist, file), 'utf8')).document;
   assert.ok(doc.querySelector('a[href="mailto:contact@pkowalski.com"]'), `${file}: public email contact is missing`);

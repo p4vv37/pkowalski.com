@@ -20,7 +20,7 @@ if (['md', 'mdx'].some((extension) => existsSync(resolve(directory, `${slug}.${e
 const file = resolve(directory, `${slug}.${isMdx ? 'mdx' : 'md'}`);
 const frontmatter = {
   title, slug, date: new Date().toISOString().slice(0, 10),
-  description: '', tags: [], draft: true,
+  description: '', tags: [], lang: 'en', draft: true,
 };
 writeFileSync(file, `---\n${Object.entries(frontmatter).map(([key, value]) => `${key}: ${JSON.stringify(value)}`).join('\n')}\n---\n\nWrite your article here.\n`, { flag: 'wx' });
 console.log(`Created ${file}\nSet draft: false when it is ready to publish.`);

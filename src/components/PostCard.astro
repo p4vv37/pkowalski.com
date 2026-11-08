@@ -10,7 +10,7 @@ const { post, index = 0 } = Astro.props;
     <span class="image-arrow" aria-hidden="true">↗</span>
   </a>
   <div class="card-meta mono"><time datetime={post.data.date}>{dateLabel(post.data.date)}</time><span>Project / notes</span></div>
-  <h3><a href={postHref(post)}>{post.data.title}</a></h3>
+  <h3><a href={postHref(post)} lang={post.data.lang} hreflang={post.data.lang}>{post.data.title}</a>{(post.data.translationKey || post.data.lang === 'pl') && <span class="language-badge mono" lang="en" aria-label={`Article language: ${post.data.lang === 'pl' ? 'Polish' : 'English'}`}>{post.data.lang.toUpperCase()}</span>}</h3>
   {post.data.draft && <span class="draft-label mono">Draft</span>}
-  <p>{post.data.description}</p>
+  <p lang={post.data.lang}>{post.data.description}</p>
 </article>

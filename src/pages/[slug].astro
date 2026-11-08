@@ -2,6 +2,7 @@
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { publishedPosts, href, dateLabel, postHref } from '../lib/content';
+import { articleLanguage, languageLabel, publishedTranslations, articleAlternates } from '../lib/article-languages.mjs';
 import { renderWordPress } from '../lib/wordpress.mjs';
 
 export async function getStaticPaths() {
@@ -12,38 +13,57 @@ export async function getStaticPaths() {
 interface Props { entry: CollectionEntry<'posts'> | CollectionEntry<'pages'>; }
 const { entry } = Astro.props;
 const isPost = entry.collection === 'posts';
+const lang = isPost ? entry.data.lang : 'en';
+const pl = lang === 'pl';
 const isLegacy = entry.data.format.startsWith('wordpress-');
 const rendered = isLegacy ? null : await render(entry);
 const Content = rendered?.Content;
 const html = isLegacy ? renderWordPress(entry.body || '', entry.data.format, import.meta.env.BASE_URL) : '';
 const posts = isPost ? await publishedPosts() : [];
+const translations: CollectionEntry<'posts'>[] = publishedTranslations(entry, posts);
+const alternates = articleAlternates(entry, posts, Astro.site, import.meta.env.BASE_URL);
 const index = posts.findIndex((post) => post.id === entry.id);
 const next = index >= 0 ? posts[index + 1] : undefined;
 const previous = index > 0 ? posts[index - 1] : undefined;
 const structuredData = isPost ? {
   '@context': 'https://schema.org', '@type': 'BlogPosting', headline: entry.data.title,
+  inLanguage: lang,
   datePublished: entry.data.date, author: { '@type': 'Person', name: 'Paweł Kowalski', url: new URL(href('/about-us/'), Astro.site).href },
   url: new URL(Astro.url.pathname, Astro.site).href,
   ...(entry.data.image ? { image: new URL(href(entry.data.image), Astro.site).href } : {}),
 } : null;
 ---
-<BaseLayout title={entry.data.title} description={entry.data.description} image={entry.data.image} article={isPost} date={isPost ? entry.data.date : undefined} noindex={entry.data.draft}>
+<BaseLayout title={entry.data.title} description={entry.data.description} image={entry.data.image} article={isPost} date={isPost ? entry.data.date : undefined} noindex={entry.data.draft} lang={lang} alternates={alternates}>
   {structuredData && <script slot="head" type="application/ld+json" set:html={JSON.stringify(structuredData).replaceAll('<', '\\u003c')} />}
   <article class:list={['article-page shell', { 'standalone-page': !isPost }]}>
     <header class="article-header">
-      <a class="back-link mono" href={href(isPost ? '/archive/' : '/')}><span aria-hidden="true">←</span> {isPost ? 'Work & notes' : 'Home'}</a>
-      {isPost && <div class="article-meta mono"><time datetime={entry.data.date}>{dateLabel(entry.data.date)}</time><span aria-hidden="true">/</span><span>{entry.data.categories.join(', ') || 'Notes'}</span></div>}
+      <a class="back-link mono" href={href(isPost ? '/archive/' : '/')}><span aria-hidden="true">←</span> {isPost ? (pl ? 'Projekty i notatki' : 'Work & notes') : 'Home'}</a>
+      {isPost && <div class="article-meta mono"><time datetime={entry.data.date}>{dateLabel(entry.data.date, lang)}</time><span aria-hidden="true">/</span><span lang="en">{entry.data.categories.join(', ') || 'Notes'}</span></div>}
+      {translations.length > 0 && <nav class="article-languages mono" aria-label={pl ? 'Język artykułu' : 'Article language'}>
+        {translations.map((version) => version.id === entry.id
+          ? <span lang={articleLanguage(version)} aria-current="page">{languageLabel(version)}<span class="language-current"> ({pl ? 'obecny' : 'current'})</span></span>
+          : <a href={postHref(version)} lang={articleLanguage(version)} hreflang={articleLanguage(version)} aria-label={articleLanguage(version) === 'pl' ? 'Czytaj po polsku' : 'Read in English'}>{languageLabel(version)}</a>)}
+      </nav>}
       <h1>{entry.data.title}</h1>
-      {entry.data.draft && <p class="draft-label mono">Draft — local preview</p>}
-      {entry.data.tags.length > 0 && <ul class="tag-list mono" aria-label="Tags">{entry.data.tags.map((tag) => <li>{tag}</li>)}</ul>}
+      {entry.data.draft && <p class="draft-label mono" lang="en">Draft — local preview</p>}
+      {entry.data.tags.length > 0 && <ul class="tag-list mono" aria-label={pl ? 'Tagi' : 'Tags'}>{entry.data.tags.map((tag) => <li lang="en">{tag}</li>)}</ul>}
     </header>
     <div class="prose" data-article-body data-wordpress-id={entry.data.wordpressId}>
       {isLegacy ? <Fragment set:html={html} /> : Content && <Content />}
     </div>
     {entry.data.slug === 'contact' && <div class="contact-action"><a class="email-link" href="mailto:contact@pkowalski.com">contact@pkowalski.com <span aria-hidden="true">↗</span></a><p class="muted">The contact form is no longer available. Please use email.</p></div>}
-    {isPost && <nav class="article-pagination" aria-label="More entries">
-      {next ? <a href={postHref(next)}><span class="mono muted">← Older entry</span><strong>{next.data.title}</strong></a> : <span />}
-      {previous && <a href={postHref(previous)}><span class="mono muted">Newer entry →</span><strong>{previous.data.title}</strong></a>}
+    {isPost && <nav class="article-pagination" aria-label={pl ? 'Więcej wpisów' : 'More entries'}>
+      {next ? <a href={postHref(next)} hreflang={next.data.lang}><span class="mono muted">← {pl ? 'Starszy wpis' : 'Older entry'}{next.data.translationKey || next.data.lang === 'pl' ? ` · ${languageLabel(next)}` : ''}</span><strong lang={next.data.lang}>{next.data.title}</strong></a> : <span />}
+      {previous && <a href={postHref(previous)} hreflang={previous.data.lang}><span class="mono muted">{pl ? 'Nowszy wpis' : 'Newer entry'}{previous.data.translationKey || previous.data.lang === 'pl' ? ` · ${languageLabel(previous)}` : ''} →</span><strong lang={previous.data.lang}>{previous.data.title}</strong></a>}
     </nav>}
   </article>
 </BaseLayout>
+<script>
+  // Keep native table semantics while making overflow keyboard-accessible.
+  for (const table of document.querySelectorAll<HTMLTableElement>('[data-article-body] table')) {
+    table.tabIndex = 0;
+    if (!table.hasAttribute('aria-label') && !table.caption) {
+      table.setAttribute('aria-label', document.documentElement.lang === 'pl' ? 'Tabela — przewijaj poziomo' : 'Table — scroll horizontally');
+    }
+  }
+</script>

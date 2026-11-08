@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="512" viewBox="0 0 1100 512" role="img" aria-labelledby="title desc">
+<title id="title">Quantization · decode</title><desc id="desc">Qwen3-4B-Instruct-2507, GGUF, AC, short prompt. Local measurements. Five measured runs. No local quality evaluation. QNN W4A16 is a separate artifact, not GGUF.</desc>
+<rect width="1100" height="512" fill="#f8fafc"/>
+<g font-family="Segoe UI, Arial, sans-serif" fill="#0f172a">
+<rect x="30" y="63" width="17" height="17" fill="#2563eb"/>
+<text x="55" y="77" font-size="15" text-anchor="start" >CPU</text>
+<rect x="230" y="63" width="17" height="17" fill="#0f766e"/>
+<text x="255" y="77" font-size="15" text-anchor="start" >NPU · GGUF</text>
+<path d="M330.0 90 V442" stroke="#cbd5e1"/>
+<text x="330.0" y="469" font-size="14" text-anchor="middle" >0</text>
+<path d="M442.0 90 V442" stroke="#cbd5e1"/>
+<text x="442.0" y="469" font-size="14" text-anchor="middle" >7</text>
+<path d="M554.0 90 V442" stroke="#cbd5e1"/>
+<text x="554.0" y="469" font-size="14" text-anchor="middle" >14</text>
+<path d="M666.0 90 V442" stroke="#cbd5e1"/>
+<text x="666.0" y="469" font-size="14" text-anchor="middle" >21</text>
+<path d="M778.0 90 V442" stroke="#cbd5e1"/>
+<text x="778.0" y="469" font-size="14" text-anchor="middle" >28</text>
+<path d="M890.0 90 V442" stroke="#cbd5e1"/>
+<text x="890.0" y="469" font-size="14" text-anchor="middle" >35</text>
+<text x="30" y="127" font-size="17" text-anchor="start" font-weight="600">F16</text>
+<rect x="330" y="110" width="165.339104" height="20" fill="#2563eb"/>
+<path d="M465.417216 120 H507.638384 M465.417216 115 V125 M507.638384 115 V125" stroke="#0f172a"/>
+<rect x="330" y="140" width="111.66456" height="20" fill="#0f766e"/>
+<path d="M441.46328 150 H441.782352 M441.46328 145 V155 M441.782352 145 V155" stroke="#0f172a"/>
+<text x="30" y="215" font-size="17" text-anchor="start" font-weight="600">Q8_0</text>
+<rect x="330" y="198" width="307.570736" height="20" fill="#2563eb"/>
+<path d="M622.411152 208 H652.99864 M622.411152 203 V213 M652.99864 203 V213" stroke="#0f172a"/>
+<rect x="330" y="228" width="194.33568" height="20" fill="#0f766e"/>
+<path d="M523.936016 238 H524.539088 M523.936016 233 V243 M524.539088 233 V243" stroke="#0f172a"/>
+<text x="30" y="303" font-size="17" text-anchor="start" font-weight="600">Q4_K_M</text>
+<rect x="330" y="286" width="295.548912" height="20" fill="#2563eb"/>
+<path d="M519.87048 296 H736.846624 M519.87048 291 V301 M736.846624 291 V301" stroke="#0f172a"/>
+<rect x="330" y="316" width="196.159136" height="20" fill="#0f766e"/>
+<path d="M525.597936 326 H526.835744 M525.597936 321 V331 M526.835744 321 V331" stroke="#0f172a"/>
+<text x="30" y="391" font-size="17" text-anchor="start" font-weight="600">Q4_0</text>
+<rect x="330" y="374" width="528.640272" height="20" fill="#2563eb"/>
+<path d="M853.304288 384 H865.17048 M853.304288 379 V389 M865.17048 379 V389" stroke="#0f172a"/>
+<rect x="330" y="404" width="268.998944" height="20" fill="#0f766e"/>
+<path d="M597.943824 414 H599.620768 M597.943824 409 V419 M599.620768 409 V419" stroke="#0f172a"/>
+<text x="610" y="495" font-size="15" text-anchor="middle" >Decode (tok/s)</text>
+</g></svg>

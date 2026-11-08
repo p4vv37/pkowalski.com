@@ -49,6 +49,7 @@ jobs:
       - name: Check every page, local link and migrated file
         run: npm run verify
         env:
+          SITE_URL: ${{ format('https://{0}', steps.pages.outputs.host || 'www.pkowalski.com') }}
           BASE_PATH: ${{ steps.pages.outputs.base_path || '/' }}
       - name: Scan Git history and generated website for secrets
         run: npm run check:secrets

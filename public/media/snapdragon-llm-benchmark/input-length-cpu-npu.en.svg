@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1140" height="455" viewBox="0 0 1140 455" role="img" aria-labelledby="title desc">
+<title id="title">Input length · CPU vs NPU</title>
+<desc id="desc">Local measurements. Same Qwen3-4B-Instruct-2507 Q4_0, context 16384, 128 output tokens. Medians of three runs. Generation time excludes loading. AC, maximum performance; separate CPU and GGUF NPU runs, not QNN.</desc>
+<rect width="1140" height="455" fill="#f8fafc"/>
+<g font-family="Segoe UI, Arial, sans-serif" fill="#0f172a">
+<rect x="30" y="82" width="18" height="16" fill="#2563eb"/><text x="55" y="96" font-size="15">CPU</text>
+<rect x="120" y="82" width="18" height="16" fill="#0f766e"/><text x="145" y="96" font-size="15">NPU · GGUF</text>
+<text x="45" y="128" font-size="16" font-weight="700">TTFT (s)</text>
+<path d="M45 380.0 H365" stroke="#cbd5e1"/>
+<text x="38" y="384.0" font-size="12" text-anchor="end">0</text>
+<path d="M45 334.0 H365" stroke="#cbd5e1"/>
+<text x="38" y="338.0" font-size="12" text-anchor="end">14</text>
+<path d="M45 288.0 H365" stroke="#cbd5e1"/>
+<text x="38" y="292.0" font-size="12" text-anchor="end">28</text>
+<path d="M45 242.0 H365" stroke="#cbd5e1"/>
+<text x="38" y="246.0" font-size="12" text-anchor="end">42</text>
+<path d="M45 196.0 H365" stroke="#cbd5e1"/>
+<text x="38" y="200.0" font-size="12" text-anchor="end">56</text>
+<path d="M45 150.0 H365" stroke="#cbd5e1"/>
+<text x="38" y="154.0" font-size="12" text-anchor="end">70</text>
+<text x="100" y="407" font-size="14" text-anchor="middle">420</text>
+<rect x="68" y="373.464" width="28" height="6.536" fill="#2563eb"/>
+<path d="M82 371.028 V375.289 M78 371.028 H86 M78 375.289 H86" stroke="#0f172a"/>
+<rect x="103" y="377.845" width="28" height="2.155" fill="#0f766e"/>
+<path d="M117 377.842 V377.848 M113 377.842 H121 M113 377.848 H121" stroke="#0f172a"/>
+<text x="205" y="407" font-size="14" text-anchor="middle">1572</text>
+<rect x="173" y="351.635" width="28" height="28.365" fill="#2563eb"/>
+<path d="M187 350.501 V351.704 M183 350.501 H191 M183 351.704 H191" stroke="#0f172a"/>
+<rect x="208" y="371.047" width="28" height="8.953" fill="#0f766e"/>
+<path d="M222 371.011 V371.099 M218 371.011 H226 M218 371.099 H226" stroke="#0f172a"/>
+<text x="310" y="407" font-size="14" text-anchor="middle">6180</text>
+<rect x="278" y="166.024" width="28" height="213.976" fill="#2563eb"/>
+<path d="M292 165.364 V167.448 M288 165.364 H296 M288 167.448 H296" stroke="#0f172a"/>
+<rect x="313" y="326.056" width="28" height="53.944" fill="#0f766e"/>
+<path d="M327 325.940 V326.069 M323 325.940 H331 M323 326.069 H331" stroke="#0f172a"/>
+<text x="205" y="432" font-size="13" text-anchor="middle">Input tokens</text>
+<text x="420" y="128" font-size="16" font-weight="700">Decode (tok/s)</text>
+<path d="M420 380.0 H740" stroke="#cbd5e1"/>
+<text x="413" y="384.0" font-size="12" text-anchor="end">0</text>
+<path d="M420 334.0 H740" stroke="#cbd5e1"/>
+<text x="413" y="338.0" font-size="12" text-anchor="end">7</text>
+<path d="M420 288.0 H740" stroke="#cbd5e1"/>
+<text x="413" y="292.0" font-size="12" text-anchor="end">14</text>
+<path d="M420 242.0 H740" stroke="#cbd5e1"/>
+<text x="413" y="246.0" font-size="12" text-anchor="end">21</text>
+<path d="M420 196.0 H740" stroke="#cbd5e1"/>
+<text x="413" y="200.0" font-size="12" text-anchor="end">28</text>
+<path d="M420 150.0 H740" stroke="#cbd5e1"/>
+<text x="413" y="154.0" font-size="12" text-anchor="end">35</text>
+<text x="475" y="407" font-size="14" text-anchor="middle">420</text>
+<rect x="443" y="201.142" width="28" height="178.858" fill="#2563eb"/>
+<path d="M457 186.818 V227.808 M453 186.818 H461 M453 227.808 H461" stroke="#0f172a"/>
+<rect x="478" y="282.802" width="28" height="97.198" fill="#0f766e"/>
+<path d="M492 282.693 V283.222 M488 282.693 H496 M488 283.222 H496" stroke="#0f172a"/>
+<text x="580" y="407" font-size="14" text-anchor="middle">1572</text>
+<rect x="548" y="233.773" width="28" height="146.227" fill="#2563eb"/>
+<path d="M562 232.509 V234.057 M558 232.509 H566 M558 234.057 H566" stroke="#0f172a"/>
+<rect x="583" y="298.245" width="28" height="81.755" fill="#0f766e"/>
+<path d="M597 298.226 V298.488 M593 298.226 H601 M593 298.488 H601" stroke="#0f172a"/>
+<text x="685" y="407" font-size="14" text-anchor="middle">6180</text>
+<rect x="653" y="339.372" width="28" height="40.628" fill="#2563eb"/>
+<path d="M667 338.978 V341.689 M663 338.978 H671 M663 341.689 H671" stroke="#0f172a"/>
+<rect x="688" y="329.162" width="28" height="50.838" fill="#0f766e"/>
+<path d="M702 328.923 V329.544 M698 328.923 H706 M698 329.544 H706" stroke="#0f172a"/>
+<text x="580" y="432" font-size="13" text-anchor="middle">Input tokens</text>
+<text x="795" y="128" font-size="16" font-weight="700">Generation (s)</text>
+<path d="M795 380.0 H1115" stroke="#cbd5e1"/>
+<text x="788" y="384.0" font-size="12" text-anchor="end">0</text>
+<path d="M795 334.0 H1115" stroke="#cbd5e1"/>
+<text x="788" y="338.0" font-size="12" text-anchor="end">20</text>
+<path d="M795 288.0 H1115" stroke="#cbd5e1"/>
+<text x="788" y="292.0" font-size="12" text-anchor="end">40</text>
+<path d="M795 242.0 H1115" stroke="#cbd5e1"/>
+<text x="788" y="246.0" font-size="12" text-anchor="end">60</text>
+<path d="M795 196.0 H1115" stroke="#cbd5e1"/>
+<text x="788" y="200.0" font-size="12" text-anchor="end">80</text>
+<path d="M795 150.0 H1115" stroke="#cbd5e1"/>
+<text x="788" y="154.0" font-size="12" text-anchor="end">100</text>
+<text x="850" y="407" font-size="14" text-anchor="middle">420</text>
+<rect x="818" y="364.609" width="28" height="15.391" fill="#2563eb"/>
+<path d="M832 361.009 V366.688 M828 361.009 H836 M828 366.688 H836" stroke="#0f172a"/>
+<rect x="853" y="358.590" width="28" height="21.410" fill="#0f766e"/>
+<path d="M867 358.500 V358.611 M863 358.500 H871 M863 358.611 H871" stroke="#0f172a"/>
+<text x="955" y="407" font-size="14" text-anchor="middle">1572</text>
+<rect x="923" y="346.915" width="28" height="33.085" fill="#2563eb"/>
+<path d="M937 346.235 V346.938 M933 346.235 H941 M933 346.938 H941" stroke="#0f172a"/>
+<rect x="958" y="350.045" width="28" height="29.955" fill="#0f766e"/>
+<path d="M972 350.000 V350.112 M968 350.000 H976 M968 350.112 H976" stroke="#0f172a"/>
+<text x="1060" y="407" font-size="14" text-anchor="middle">6180</text>
+<rect x="1028" y="182.138" width="28" height="197.862" fill="#2563eb"/>
+<path d="M1042 179.720 V184.054 M1038 179.720 H1046 M1038 184.054 H1046" stroke="#0f172a"/>
+<rect x="1063" y="304.186" width="28" height="75.814" fill="#0f766e"/>
+<path d="M1077 303.816 V304.372 M1073 303.816 H1081 M1073 304.372 H1081" stroke="#0f172a"/>
+<text x="955" y="432" font-size="13" text-anchor="middle">Input tokens</text>
+</g></svg>

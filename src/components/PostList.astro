@@ -12,7 +12,7 @@ const years = [...new Set(posts.map((post) => post.data.date.slice(0, 4)))];
   <div class="post-list" role="list">
     {posts.map((post, index) => <article role="listitem" class="post-row" data-post data-year-value={post.data.date.slice(0, 4)} data-search-value={`${post.data.title} ${post.data.description} ${post.data.tags.join(' ')}`.toLowerCase()}>
       <span class="row-number mono" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-      <h3><a href={postHref(post)}>{post.data.title}</a>{post.data.draft && <span class="draft-label mono"> Draft</span>}</h3>
+      <h3><a href={postHref(post)} lang={post.data.lang} hreflang={post.data.lang}>{post.data.title}</a>{(post.data.translationKey || post.data.lang === 'pl') && <span class="language-badge mono" lang="en" aria-label={`Article language: ${post.data.lang === 'pl' ? 'Polish' : 'English'}`}>{post.data.lang.toUpperCase()}</span>}{post.data.draft && <span class="draft-label mono"> Draft</span>}</h3>
       <time class="mono" datetime={post.data.date}>{dateLabel(post.data.date)}</time>
       <span class="row-arrow" aria-hidden="true">↗</span>
     </article>)}

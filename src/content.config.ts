@@ -16,6 +16,9 @@ const schema = z.object({
 });
 
 export const collections = {
-  posts: defineCollection({ loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/posts' }), schema }),
+  posts: defineCollection({ loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/posts' }), schema: schema.extend({
+    lang: z.enum(['pl', 'en']).default('en'),
+    translationKey: z.string().trim().min(1).optional(),
+  }) }),
   pages: defineCollection({ loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/pages' }), schema }),
 };

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="410" viewBox="0 0 1100 410" role="img" aria-labelledby="title desc">
+<title id="title">Model size · CPU · Q4_K_M</title><desc id="desc">Original Qwen3, Q4_K_M, CPU, AC, non-thinking, context 512. Local measurements. Five runs per model. Separate decode and TTFT panels; different checkpoints.</desc>
+<rect width="1100" height="410" fill="#f8fafc"/>
+<g font-family="Segoe UI, Arial, sans-serif" fill="#0f172a">
+<text x="30" y="105" font-size="17" text-anchor="start" font-weight="600">Decode (tok/s)</text>
+<path d="M90.0 130 V345" stroke="#cbd5e1"/>
+<text x="90.0" y="372" font-size="13" text-anchor="middle" >0</text>
+<path d="M159.0 130 V345" stroke="#cbd5e1"/>
+<text x="159.0" y="372" font-size="13" text-anchor="middle" >14</text>
+<path d="M228.0 130 V345" stroke="#cbd5e1"/>
+<text x="228.0" y="372" font-size="13" text-anchor="middle" >28</text>
+<path d="M297.0 130 V345" stroke="#cbd5e1"/>
+<text x="297.0" y="372" font-size="13" text-anchor="middle" >42</text>
+<path d="M366.0 130 V345" stroke="#cbd5e1"/>
+<text x="366.0" y="372" font-size="13" text-anchor="middle" >56</text>
+<path d="M435.0 130 V345" stroke="#cbd5e1"/>
+<text x="435.0" y="372" font-size="13" text-anchor="middle" >70</text>
+<text x="30" y="163" font-size="16" text-anchor="start" >1.7B</text>
+<rect x="90" y="145" width="284.92467685714286" height="25" fill="#2563eb"/>
+<path d="M371.94102814285714 157 H416.59316078571436 M371.94102814285714 152 V162 M416.59316078571436 152 V162" stroke="#0f172a"/>
+<text x="30" y="213" font-size="16" text-anchor="start" >8B</text>
+<rect x="90" y="195" width="90.6109577142857" height="25" fill="#2563eb"/>
+<path d="M179.7662547857143 207 H182.34261621428573 M179.7662547857143 202 V212 M182.34261621428573 202 V212" stroke="#0f172a"/>
+<text x="30" y="263" font-size="16" text-anchor="start" >14B</text>
+<rect x="90" y="245" width="51.98814364285714" height="25" fill="#2563eb"/>
+<path d="M138.37578664285715 257 H142.27965385714288 M138.37578664285715 252 V262 M142.27965385714288 252 V262" stroke="#0f172a"/>
+<text x="30" y="313" font-size="16" text-anchor="start" >32B</text>
+<rect x="90" y="295" width="23.517619928571428" height="25" fill="#2563eb"/>
+<path d="M113.1579722142857 307 H113.61161764285714 M113.1579722142857 302 V312 M113.61161764285714 302 V312" stroke="#0f172a"/>
+<text x="580" y="105" font-size="17" text-anchor="start" font-weight="600">TTFT (ms)</text>
+<path d="M640.0 130 V345" stroke="#cbd5e1"/>
+<text x="640.0" y="372" font-size="13" text-anchor="middle" >0</text>
+<path d="M709.0 130 V345" stroke="#cbd5e1"/>
+<text x="709.0" y="372" font-size="13" text-anchor="middle" >500</text>
+<path d="M778.0 130 V345" stroke="#cbd5e1"/>
+<text x="778.0" y="372" font-size="13" text-anchor="middle" >1000</text>
+<path d="M847.0 130 V345" stroke="#cbd5e1"/>
+<text x="847.0" y="372" font-size="13" text-anchor="middle" >1500</text>
+<path d="M916.0 130 V345" stroke="#cbd5e1"/>
+<text x="916.0" y="372" font-size="13" text-anchor="middle" >2000</text>
+<path d="M985.0 130 V345" stroke="#cbd5e1"/>
+<text x="985.0" y="372" font-size="13" text-anchor="middle" >2500</text>
+<text x="580" y="163" font-size="16" text-anchor="start" >1.7B</text>
+<rect x="640" y="145" width="14.366214" height="25" fill="#2563eb"/>
+<path d="M652.025458 157 H685.247854 M652.025458 152 V162 M685.247854 152 V162" stroke="#0f172a"/>
+<text x="580" y="213" font-size="16" text-anchor="start" >8B</text>
+<rect x="640" y="195" width="73.07665800000001" height="25" fill="#2563eb"/>
+<path d="M700.272604 207 H790.979452 M700.272604 202 V212 M790.979452 202 V212" stroke="#0f172a"/>
+<text x="580" y="263" font-size="16" text-anchor="start" >14B</text>
+<rect x="640" y="245" width="127.155822" height="25" fill="#2563eb"/>
+<path d="M754.231432 257 H783.0135399999999 M754.231432 252 V262 M783.0135399999999 252 V262" stroke="#0f172a"/>
+<text x="580" y="313" font-size="16" text-anchor="start" >32B</text>
+<rect x="640" y="295" width="322.23138" height="25" fill="#2563eb"/>
+<path d="M935.581786 307 H973.834834 M935.581786 302 V312 M973.834834 302 V312" stroke="#0f172a"/>
+</g></svg>
