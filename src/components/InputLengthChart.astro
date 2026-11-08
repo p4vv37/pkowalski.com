@@ -1,0 +1,120 @@
+---
+interface Props {
+  lang?: 'pl' | 'en';
+}
+const { lang = 'en' } = Astro.props;
+const pl = lang === 'pl';
+const labels = {
+  title: pl ? 'Dłuższe wejście: CPU czy NPU?' : 'Longer input: CPU or NPU?',
+  x: pl ? 'Tokeny wejścia' : 'Input tokens',
+  y: pl ? 'Czas generacji (s)' : 'Generation time (s)',
+  subtitle: pl ? '128 tokenów odpowiedzi · mniej = lepiej' : '128 output tokens · lower is better',
+  note: pl
+    ? 'Mediany z 3 mierzonych prób na punkt. Qwen3-4B-Instruct-2507 Q4_0, stałe okno 16 384 tokenów, zasilacz i maksymalna wydajność. Czas obejmuje przetworzenie wejścia i wygenerowanie odpowiedzi, bez ładowania modelu. NPU przez ggml-hexagon (GGUF), nie QNN. Linie łączą trzy zmierzone długości wejścia; nie wyznaczają dokładnego punktu zmiany przewagi.'
+    : 'Medians of 3 measured runs per point. Qwen3-4B-Instruct-2507 Q4_0, fixed 16,384-token window, AC power and maximum performance. Time includes processing the input and generating the answer, excluding model loading. NPU via ggml-hexagon (GGUF), not QNN. Lines connect three measured input lengths; they do not establish the exact crossover point.',
+};
+// Recorded medians from docs/assets/input-length-cpu-npu.csv; not TTFT
+// and not sums of separately aggregated prefill/decode measurements.
+const measurements = {
+  tokens: [420, 1572, 6180],
+  cpu: [6.691707, 14.384852, 86.026999],
+  npu: [9.308503, 13.02385, 32.962808],
+};
+const chartData = JSON.stringify({ labels, measurements, lang });
+---
+
+<figure class="interactive-chart" data-input-length-chart>
+  <div class="input-length-chart-header">
+    <div class="input-length-chart-title">{labels.title}</div>
+    <div class="input-length-chart-subtitle">{labels.subtitle}</div>
+  </div>
+  <div class="interactive-chart-plot" role="img" aria-label={labels.title}></div>
+  <figcaption class="interactive-chart-note">{labels.note}</figcaption>
+  <script is:inline define:vars={{ chartData }}>
+    (function () {
+      var d = JSON.parse(chartData);
+      var labels = d.labels;
+      var m = d.measurements;
+      var figure = document.currentScript.closest('[data-input-length-chart]');
+      var plot = figure.querySelector('.interactive-chart-plot');
+      var traces = [
+        {
+          type: 'scatter', mode: 'lines+markers', name: 'CPU',
+          x: m.tokens, y: m.cpu,
+          line: { color: '#2563eb', width: 3, shape: 'linear' },
+          marker: { color: '#2563eb', size: 9, symbol: 'circle' },
+        },
+        {
+          type: 'scatter', mode: 'lines+markers', name: 'NPU · GGUF',
+          x: m.tokens, y: m.npu,
+          line: { color: '#0f766e', width: 3, dash: 'dash', shape: 'linear' },
+          marker: { color: '#0f766e', size: 10, symbol: 'diamond' },
+        },
+      ];
+      traces.forEach(function (trace) {
+        trace.hovertemplate = labels.x + ': %{x}<br>%{y:.2f} s<extra>' + trace.name + '</extra>';
+      });
+      var layout = {
+        paper_bgcolor: '#f8fafc', plot_bgcolor: '#f8fafc',
+        font: { family: 'Segoe UI, Arial, sans-serif', color: '#0f172a' },
+        separators: d.lang === 'pl' ? ', ' : '.,',
+        xaxis: {
+          title: { text: labels.x }, type: 'linear', range: [0, 6600],
+          tickvals: m.tokens,
+          ticktext: m.tokens.map(function (n) { return n.toLocaleString(d.lang); }),
+          automargin: true, gridcolor: '#cbd5e1', linecolor: '#cbd5e1', zeroline: false,
+        },
+        yaxis: {
+          title: { text: labels.y }, rangemode: 'tozero',
+          automargin: true, gridcolor: '#cbd5e1', linecolor: '#cbd5e1', zeroline: false,
+        },
+        margin: { t: 48, b: 64, l: 64, r: 20 },
+        legend: { orientation: 'h', x: 0, y: 1.04, xanchor: 'left', yanchor: 'bottom' },
+        hovermode: 'x unified',
+      };
+
+      function render() {
+        window.Plotly.newPlot(plot, traces, layout, { responsive: true, displayModeBar: false });
+      }
+      function fail() {
+        plot.textContent = labels.note;
+      }
+
+      if (window.Plotly) {
+        render();
+      } else {
+        // Reuse the request started by SpeedPowerChart above this chart.
+        // Also support rendering this component on its own.
+        var url = 'https://cdn.plot.ly/plotly-2.35.2.min.js';
+        var loader = document.querySelector('script[src="' + url + '"]');
+        var existing = Boolean(loader);
+        if (!loader) {
+          loader = document.createElement('script');
+          loader.src = url;
+        }
+        loader.addEventListener('load', render, { once: true });
+        loader.addEventListener('error', fail, { once: true });
+        if (!existing) document.head.appendChild(loader);
+      }
+    })();
+  </script>
+</figure>
+
+<style>
+  .input-length-chart-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 16px 0;
+    background: #f8fafc;
+    color: #0f172a;
+    border: 1px solid var(--line);
+    border-bottom: 0;
+    border-radius: 8px 8px 0 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    line-height: 1.4;
+  }
+  .input-length-chart-title { font-size: 17px; font-weight: 600; }
+  .input-length-chart-subtitle { font-size: 13px; color: #475569; }
+  .interactive-chart .interactive-chart-plot { border-top: 0; border-radius: 0 0 8px 8px; }
+</style>

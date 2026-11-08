@@ -9,6 +9,7 @@ tags: ["LLM", "Snapdragon", "NPU"]
 draft: false
 ---
 import SpeedPowerChart from '../../components/SpeedPowerChart.astro';
+import InputLengthChart from '../../components/InputLengthChart.astro';
 
 
 W swoim laptopie Lenovo [Yoga Slim 7x](https://www.lenovo.com/pl/pl/p/laptops/yoga/ai-laptops/yoga-slim-7x-gen-9-14-inch-snapdragon/len101y0049) mam oprócz standardowego CPU i GPU jeszcze jeden procesor: NPU (Neural Processing Unit), przeznaczony do energooszczędnego wykonywania obliczeń sieci neuronowych. Na co dzień ten NPU, może poza [rozmywaniem tła podczas rozmowy](https://learn.microsoft.com/en-us/windows/apps/develop/windows-integration/studio-effects) czy [indeksowaniem plików w tle](https://support.microsoft.com/en-us/windows/ai/ai-features/copilot-plus-pcs), pozostaje bezczynny. Postanowiłem więc sprawdzić, co jeszcze da się z nim zrobić, jaką oferuje wydajność i czy w praktyce warto z niego korzystać.
@@ -32,6 +33,10 @@ Punktem startowym jest Qwen3-4B-Instruct-2507. Później sprawdzę wybrane rozmi
 - NPU nie jest automatycznie najlepszym wyborem — zależy od scenariusza.
 
 <SpeedPowerChart lang="pl" />
+
+<InputLengthChart lang="pl" />
+
+**Dłuższe wejście może zmienić wybór urządzenia.** Przy 420 tokenach wejścia CPU kończył generację wcześniej: 6,69 s wobec 9,31 s na NPU. Przy 6180 tokenach NPU potrzebowało 32,96 s, a CPU 86,03 s — w tym teście NPU było około **2,6× szybsze**. To jeden syntetyczny scenariusz, wydłużany przez powtarzanie akapitów, nie zbiór różnych dokumentów. Wynik dotyczy tej konfiguracji i nie dowodzi ogólnej przewagi NPU przy długim kontekście; nie mierzono tu mocy ani energii.
 
 ## 1. Podstawowe informacje
 

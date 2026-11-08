@@ -9,6 +9,7 @@ tags: ["LLM", "Snapdragon", "NPU"]
 draft: false
 ---
 import SpeedPowerChart from '../../components/SpeedPowerChart.astro';
+import InputLengthChart from '../../components/InputLengthChart.astro';
 
 
 My Lenovo [Yoga Slim 7x](https://www.lenovo.com/pl/pl/p/laptops/yoga/ai-laptops/yoga-slim-7x-gen-9-14-inch-snapdragon/len101y0049) has another processor alongside the usual CPU and GPU: an NPU (Neural Processing Unit), designed to run neural network computations in an energy-efficient way. In everyday use, apart from things like [blurring the background during calls](https://learn.microsoft.com/en-us/windows/apps/develop/windows-integration/studio-effects) or [indexing files in the background](https://support.microsoft.com/en-us/windows/ai/ai-features/copilot-plus-pcs), it mostly sits idle. I decided to check what else I could do with it, how fast it is, and whether it is worth using in practice.
@@ -34,6 +35,10 @@ The starting point is Qwen3-4B-Instruct-2507. Later, I will test selected model 
 - The NPU is not automatically the best choice — it depends on the scenario.
 
 <SpeedPowerChart lang="en" />
+
+<InputLengthChart lang="en" />
+
+**Longer input can change which device is faster.** With 420 input tokens, the CPU finished generation sooner: 6.69 s versus 9.31 s on the NPU. With 6180 input tokens, the NPU took 32.96 s and the CPU 86.03 s — the NPU was about **2.6× faster in this test**. This is one synthetic scenario, extended by repeating paragraphs, not a collection of different documents. The result applies to this configuration and does not establish a general NPU advantage for long contexts; power and energy were not measured here.
 
 ## 1. Background
 
