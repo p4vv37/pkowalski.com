@@ -38,7 +38,7 @@ The starting point is Qwen3-4B-Instruct-2507. Later, I will test selected model 
 
 <InputLengthChart lang="en" />
 
-**Longer input can change which device is faster.** With 420 input tokens, the CPU finished generation sooner: 6.69 s versus 9.31 s on the NPU. With 6180 input tokens, the NPU took 32.96 s and the CPU 86.03 s — the NPU was about **2.6× faster in this test**. This is one synthetic scenario, extended by repeating paragraphs, not a collection of different documents. The result applies to this configuration and does not establish a general NPU advantage for long contexts; power and energy were not measured here.
+**Longer input can change which device is faster.** With 420 input tokens, the CPU finished generation sooner: 6.69 s versus 9.31 s on the NPU. With 6180 input tokens, the NPU took 32.96 s and the CPU 86.03 s — the NPU was about **2.6× faster in this test**.
 
 ## 1. Background
 

@@ -94,8 +94,8 @@ test('both articles place the line chart immediately below SpeedPowerChart with 
     assert.ok(post.includes(`<SpeedPowerChart lang="${lang}" />\n\n<InputLengthChart lang="${lang}" />`));
     const description = post.split(`<InputLengthChart lang="${lang}" />`)[1].split('## 1.')[0];
     assert.match(description, /2[,.]6×/);
-    assert.match(description, /syntetyczny|synthetic/);
-    assert.match(description, /nie dowodzi ogólnej przewagi|does not establish a general NPU advantage/);
-    assert.match(description, /nie mierzono tu mocy ani energii|power and energy were not measured/);
+    assert.match(description, /420/);
+    assert.match(description, /6180/);
+    assert.match(description, /w tym teście|in this test/);
   }
 });
