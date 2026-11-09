@@ -46,6 +46,15 @@
 .prose .has-text-align-right { text-align: right; }
 .prose .aligncenter { margin-inline: auto; }
 .prose .wp-block-video, .prose .wp-block-image { max-width: 100%; }
+.prose .background-details { margin-block: 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.prose .background-details > summary { padding: 16px 20px; color: var(--text); cursor: pointer; line-height: 1.5; }
+.prose .background-details > summary::marker { color: var(--accent); }
+.prose .background-details > summary:hover { color: var(--accent); }
+.prose .background-details > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
+.prose .background-details > summary h3 { display: inline; margin: 0; font-size: 1.1rem; line-height: inherit; color: inherit; }
+.prose .background-details-content { padding: 8px 20px 20px; }
+.prose .background-details-content > :first-child { margin-top: 0; }
+.prose .background-details-content > :last-child { margin-bottom: 0; }
 .prose .interactive-chart { margin-block: 2rem; }
 .prose .interactive-chart-plot { width: 100%; height: 440px; background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; }
 @media (max-width: 600px) {
