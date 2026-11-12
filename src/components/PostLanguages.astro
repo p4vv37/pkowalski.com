@@ -1,0 +1,10 @@
+---
+import { type Post, postHref } from '../lib/content';
+import { combinedTranslations, articleLanguage, languageLabel } from '../lib/article-languages.mjs';
+interface Props { post: Post; allPosts: Post[]; }
+const { post, allPosts } = Astro.props;
+const versions: Post[] = combinedTranslations(post, allPosts);
+---
+{versions.length > 1 ? <span class="listing-languages mono" aria-label="Available article languages">
+  {versions.map((version) => <a href={postHref(version)} lang={articleLanguage(version)} hreflang={articleLanguage(version)} aria-label={articleLanguage(version) === 'pl' ? 'Czytaj po polsku' : 'Read in English'}>{languageLabel(version)}</a>)}
+</span> : (post.data.translationKey || post.data.lang === 'pl') && <span class="language-badge mono" lang="en" aria-label={`Article language: ${post.data.lang === 'pl' ? 'Polish' : 'English'}`}>{post.data.lang.toUpperCase()}</span>}

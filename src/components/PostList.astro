@@ -1,8 +1,13 @@
 ---
 import { dateLabel, postHref, type Post } from '../lib/content';
-interface Props { posts: Post[]; searchable?: boolean; }
-const { posts, searchable = false } = Astro.props;
+import PostLanguages from './PostLanguages.astro';
+import { combinedTranslations } from '../lib/article-languages.mjs';
+interface Props { posts: Post[]; searchable?: boolean; allPosts?: Post[]; }
+const { posts, searchable = false, allPosts = posts } = Astro.props;
 const years = [...new Set(posts.map((post) => post.data.date.slice(0, 4)))];
+const searchText = (post: Post) => [post, ...combinedTranslations(post, allPosts)]
+  .map((version) => `${version.data.title} ${version.data.description} ${version.data.tags.join(' ')}`)
+  .join(' ').toLowerCase();
 ---
 <div class="post-browser" data-post-browser>
   {searchable && <form class="archive-controls" role="search" onsubmit="return false" hidden data-search-controls>
@@ -10,9 +15,9 @@ const years = [...new Set(posts.map((post) => post.data.date.slice(0, 4)))];
     <div class="year-field"><label for="post-year">Year</label><select id="post-year" data-year><option value="">All years</option>{years.map((year) => <option value={year}>{year}</option>)}</select></div>
   </form>}
   <div class="post-list" role="list">
-    {posts.map((post, index) => <article role="listitem" class="post-row" data-post data-year-value={post.data.date.slice(0, 4)} data-search-value={`${post.data.title} ${post.data.description} ${post.data.tags.join(' ')}`.toLowerCase()}>
+    {posts.map((post, index) => <article role="listitem" class="post-row" data-post data-year-value={post.data.date.slice(0, 4)} data-search-value={searchText(post)}>
       <span class="row-number mono" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-      <h3><a href={postHref(post)} lang={post.data.lang} hreflang={post.data.lang}>{post.data.title}</a>{(post.data.translationKey || post.data.lang === 'pl') && <span class="language-badge mono" lang="en" aria-label={`Article language: ${post.data.lang === 'pl' ? 'Polish' : 'English'}`}>{post.data.lang.toUpperCase()}</span>}{post.data.draft && <span class="draft-label mono"> Draft</span>}</h3>
+      <h3><a href={postHref(post)} lang={post.data.lang} hreflang={post.data.lang}>{post.data.title}</a><PostLanguages post={post} allPosts={allPosts} />{post.data.draft && <span class="draft-label mono"> Draft</span>}</h3>
       <time class="mono" datetime={post.data.date}>{dateLabel(post.data.date)}</time>
       <span class="row-arrow" aria-hidden="true">↗</span>
     </article>)}

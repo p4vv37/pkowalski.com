@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { articleLanguage, articlePath, articleAlternates, publishedTranslations, validateArticleEntries } from '../src/lib/article-languages.mjs';
+import { articleLanguage, articlePath, articleAlternates, publishedTranslations, validateArticleEntries, combinedTranslations, listedArticles, articleNeighbors } from '../src/lib/article-languages.mjs';
 
 const post = (slug, lang, translationKey, draft = false) => ({ collection: 'posts', id: slug, data: { slug, lang, translationKey, draft } });
 const en = post('local-llms-snapdragon-x-elite', 'en', 'snapdragon-llm-benchmark');
@@ -60,4 +60,52 @@ test('slug collisions across posts, pages, drafts and static/legacy routes fail'
   for (const slug of ['', '../escape', 'pl/entry', 'a%2fb', 'entry?x', 'entry#x', ' spaced ', 'A', '.']) {
     assert.throws(() => validateArticleEntries([post(slug)]), /Invalid single-segment slug/);
   }
+});
+
+
+const combined = (slug, lang, draft = false) => {
+  const entry = post(slug, lang, 'bielik-ventuno-q', draft);
+  entry.data.translationListing = 'combined';
+  return entry;
+};
+const bEn = combined('bielik', 'en');
+const bPl = combined('bielik-pl', 'pl');
+
+test('combined listing is opt-in, prefers English regardless of ordering and retains legacy pair', () => {
+  assert.deepEqual(listedArticles([bPl, bEn, en, pl]), [bEn, en, pl]);
+  assert.deepEqual(listedArticles([bEn, bPl, en, pl]), [bEn, en, pl]);
+  assert.deepEqual(combinedTranslations(en, [en, pl]), []);
+  assert.deepEqual(combinedTranslations(bPl, [bPl, bEn]), [bEn, bPl]);
+  assert.equal(publishedTranslations(bPl, [bPl, bEn]).length, 2);
+});
+
+test('single published language remains listed; drafts are never alternate/listing links', () => {
+  const draft = combined('bielik-pl-draft', 'pl', true);
+  assert.deepEqual(listedArticles([bEn]), [bEn]);
+  assert.deepEqual(combinedTranslations(bEn, [bEn, draft]), []);
+  assert.deepEqual(combinedTranslations(draft, [bEn, draft]), []);
+  assert.deepEqual(listedArticles([bEn, draft]), [bEn, draft]); // local preview only
+  assert.deepEqual(listedArticles([bPl]), [bPl]);
+});
+
+test('combined article neighbors never point to its own translated version', () => {
+  const newer = post('newer', 'en');
+  const older = post('older', 'en');
+  const entries = [newer, bPl, bEn, older];
+  for (const entry of [bPl, bEn]) {
+    assert.deepEqual(articleNeighbors(entry, entries), { previous: newer, next: older });
+  }
+  assert.equal(articleNeighbors(newer, entries).next, bEn);
+  assert.equal(articleNeighbors(older, entries).previous, bEn);
+  assert.deepEqual(articleNeighbors(post('missing', 'en'), entries), { previous: undefined, next: undefined });
+});
+
+test('combined frontmatter validates key, mode and consistent opt-in across translations', () => {
+  assert.doesNotThrow(() => validateArticleEntries([bEn, bPl]));
+  const noKey = { ...bEn, data: { ...bEn.data, translationKey: undefined } };
+  assert.throws(() => validateArticleEntries([noKey]), /requires translationKey/);
+  const independent = { ...bPl, data: { ...bPl.data, translationListing: 'independent' } };
+  assert.throws(() => validateArticleEntries([bEn, independent]), /Conflicting translationListing/);
+  const invalid = { ...bEn, data: { ...bEn.data, translationListing: 'invalid' } };
+  assert.throws(() => validateArticleEntries([invalid]), /Invalid translationListing/);
 });

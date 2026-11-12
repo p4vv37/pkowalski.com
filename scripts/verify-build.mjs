@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { parseHTML } from 'linkedom';
 import { stripBase } from '../src/lib/paths.mjs';
 import { renderWordPress } from '../src/lib/wordpress.mjs';
-import { articleAlternates, articlePath, articleLanguage, validateArticleEntries, publishedTranslations } from '../src/lib/article-languages.mjs';
+import { articleAlternates, articlePath, articleLanguage, validateArticleEntries, publishedTranslations, listedArticles, combinedTranslations } from '../src/lib/article-languages.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const dist = resolve(root, 'dist');
@@ -15,7 +15,6 @@ const scalar = (frontmatter, key) => {
   const value = frontmatter.match(new RegExp(`^${key}:\\s*(?:"([^"]*)"|'([^']*)'|([^\\s#]+))`, 'm'));
   return value?.[1] ?? value?.[2] ?? value?.[3];
 };
-let publishedPostCount = 0;
 function readContent(path, collection) {
   for (const entry of readdirSync(path, { withFileTypes: true })) {
     const file = join(path, entry.name);
@@ -26,10 +25,9 @@ function readContent(path, collection) {
     const draft = /^draft:\s*true\s*(?:#.*)?$/m.test(frontmatter);
     entries.push({ collection, id: relative(root, file), data: {
       slug: scalar(frontmatter, 'slug'), lang: scalar(frontmatter, 'lang') || 'en',
-      translationKey: scalar(frontmatter, 'translationKey'), draft,
+      translationKey: scalar(frontmatter, 'translationKey'), translationListing: scalar(frontmatter, 'translationListing'), draft,
     } });
     if (draft) continue;
-    if (collection === 'posts') publishedPostCount++;
     const id = frontmatter.match(/^wordpressId:\s*(\d+)/m)?.[1];
     if (!id) continue;
     const match = frontmatter.match(/^slug:\s*(?:"([^"]+)"|'([^']+)'|([^\s#]+))/m);
@@ -116,6 +114,9 @@ const rss = readFileSync(join(dist, 'rss.xml'), 'utf8');
 const archive = parseHTML(readFileSync(join(dist, 'archive/index.html'), 'utf8')).document;
 const posts = entries.filter((entry) => entry.collection === 'posts');
 validateArticleEntries(posts, entries.filter((entry) => entry.collection === 'pages'));
+const listed = listedArticles(posts.filter((post) => !post.data.draft));
+const publishedPostCount = listed.length;
+const listedIds = new Set(listed.map((post) => post.id));
 const site = process.env.SITE_URL || 'https://www.pkowalski.com';
 assert.doesNotMatch(rss, /<language>en<\/language>/, 'Mixed RSS must not declare a fixed English channel language');
 for (const post of posts) {
@@ -144,7 +145,14 @@ for (const post of posts) {
       assert.ok(switcher.querySelector(`a[href="${articlePath(other, base)}"][hreflang="${articleLanguage(other)}"][lang="${articleLanguage(other)}"]`), `${post.data.slug}: accessible counterpart link`);
     }
   }
-  assert.ok(rss.includes(self), `${post.data.slug}: RSS URL`);
+  assert.equal(rss.includes(self), listedIds.has(post.id), `${post.data.slug}: RSS includes only listing representatives`);
+  if (listedIds.has(post.id)) {
+    const row = [...archive.querySelectorAll('[data-post]')].find((node) => node.querySelector(`h3 > a[href="${articlePath(post, base)}"]`));
+    assert.ok(row, `${post.data.slug}: archive representative`);
+    for (const version of combinedTranslations(post, posts)) {
+      assert.ok(row.querySelector(`.listing-languages a[href="${articlePath(version, base)}"][hreflang="${articleLanguage(version)}"]`), `${post.data.slug}: combined archive language link`);
+    }
+  }
 }
 // Opt-in publication gate: normal legacy-only checkouts can still be verified.
 if (process.env.REQUIRE_NPU_ARTICLES === '1') {

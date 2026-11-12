@@ -1,9 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
-import { publishedPosts, href } from '../lib/content';
+import { publishedPosts, listedPosts, href } from '../lib/content';
 import homepage from '../data/homepage.json';
-const posts = await publishedPosts();
+const allPosts = await publishedPosts();
+const posts = listedPosts(allPosts);
 const selected = homepage.featuredSlugs.map((slug) => posts.find((post) => post.data.slug === slug)).filter((post): post is NonNullable<typeof post> => Boolean(post));
 const latest = posts.filter((post) => !homepage.featuredSlugs.includes(post.data.slug)).slice(0, homepage.latestCount);
 ---
@@ -18,11 +19,11 @@ const latest = posts.filter((post) => !homepage.featuredSlugs.includes(post.data
   </section>
   <section id="selected" class="work-section shell" aria-labelledby="latest-title">
     <div class="section-heading"><h2 id="latest-title"><span class="section-code mono">01 /</span> Latest entries</h2><span class="section-note mono">Most recent</span></div>
-    <div class="latest-grid">{latest.map((post, index) => <PostCard post={post} index={index} />)}</div>
+    <div class="latest-grid">{latest.map((post, index) => <PostCard post={post} index={index} allPosts={allPosts} />)}</div>
   </section>
   <section class="work-section shell" aria-labelledby="selected-title">
     <div class="section-heading"><h2 id="selected-title"><span class="section-code mono">02 /</span> Selected projects</h2><span class="section-note mono">Two highlights</span></div>
-    <div class="featured-grid">{selected.map((post, index) => <PostCard post={post} index={index} />)}</div>
+    <div class="featured-grid">{selected.map((post, index) => <PostCard post={post} index={index} allPosts={allPosts} />)}</div>
   </section>
   <div class="notes-section shell"><a class="archive-link mono" href={href('/archive/')}>Explore all {posts.length} entries <span aria-hidden="true">↗</span></a></div>
 </BaseLayout>
