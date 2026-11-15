@@ -21,6 +21,8 @@ The assumption was simple: the models that recognize speech, prepare the answer,
 
 Ultimately three networks run on the board: **Whisper Large-v3-Turbo, Qwen2.5-3B, and Polish Pocket TTS**. The first two use the NPU, the last uses the CPU. **Linux Voice Assistant (LVA)** handles the local "Okay Nabu" wake word; the microphone and speaker are a single USB conference speakerphone. The biggest challenge was selecting fast, fully compatible components for this pipeline of acceptable quality and integrating them into a stable system.
 
+**Code:** [github.com/p4vv37/ha-local-agent](https://github.com/p4vv37/ha-local-agent) — the thin wrapper (gateway + router) with setup instructions.
+
 ![Arduino VENTUNO Q with a USB conference speakerphone (microphone and speaker in one device).](/images/arduino-local-agent/foto.jpg)
 
 ## 2. Three networks, one board, Home Assistant in between

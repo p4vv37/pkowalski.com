@@ -21,6 +21,8 @@ Założenie było proste: modele rozpoznające mowę, przygotowujące odpowiedź
 
 Ostatecznie na płytce działają trzy sieci: **Whisper Large-v3-Turbo, Qwen2.5-3B i polski Pocket TTS**. Dwie pierwsze korzystają z NPU, ostatnia z CPU. **Linux Voice Assistant (LVA)** obsługuje lokalne wybudzanie „Okay Nabu"; mikrofon i głośnik to jeden głośnik konferencyjny USB. Największym wyzwaniem był dobór wydajnych, w pełni kompatybilnych elementów tego pipeline o zadowalającej jakości oraz zintegrowanie ich w stabilnie działający system.
 
+**Kod:** [github.com/p4vv37/ha-local-agent](https://github.com/p4vv37/ha-local-agent) — cienki wrapper (bramka + router) z instrukcjami uruchamiania.
+
 ![Arduino VENTUNO Q z głośnikiem konferencyjnym USB (mikrofon i głośnik w jednym urządzeniu).](/images/arduino-local-agent/foto.jpg)
 
 ## 2. Trzy sieci, jedna płytka, Home Assistant pomiędzy nimi
