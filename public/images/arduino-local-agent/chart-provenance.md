@@ -1,6 +1,6 @@
 # Pochodzenie danych do ilustracji
 
-Wykresy publikacyjne po polsku. Dane historyczne, nie opis obecnego stanu usług. Nie zawierają surowych promptów, identyfikatorów urządzeń ani innych prywatnych danych.
+Wykresy publikacyjne z **angielskimi/minimalnymi etykietami** (uniwersalne dla wersji PL i EN). Dane historyczne, nie opis obecnego stanu usług. Nie zawierają surowych promptów, identyfikatorów urządzeń ani innych prywatnych danych.
 
 ## ha-context-before-after.svg / .png
 

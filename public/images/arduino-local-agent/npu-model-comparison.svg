@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-11-14T23:46:46.509814</dc:date>
+    <dc:date>2026-11-15T21:06:40.277809</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -42,7 +42,7 @@ z
      <g id="line2d_1">
       <path d="M 218.88 349.92 
 L 218.88 185.76 
-" clip-path="url(#pcfe6a30cb0)" style="fill: none; stroke: #dce4ed; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p6a91bc67cc)" style="fill: none; stroke: #dce4ed; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_2"/>
      <g id="text_1">
@@ -53,7 +53,7 @@ L 218.88 185.76
      <g id="line2d_3">
       <path d="M 375.222857 349.92 
 L 375.222857 185.76 
-" clip-path="url(#pcfe6a30cb0)" style="fill: none; stroke: #dce4ed; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p6a91bc67cc)" style="fill: none; stroke: #dce4ed; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_4"/>
      <g id="text_2">
@@ -64,7 +64,7 @@ L 375.222857 185.76
      <g id="line2d_5">
       <path d="M 531.565714 349.92 
 L 531.565714 185.76 
-" clip-path="url(#pcfe6a30cb0)" style="fill: none; stroke: #dce4ed; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#p6a91bc67cc)" style="fill: none; stroke: #dce4ed; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_6"/>
      <g id="text_3">
@@ -72,7 +72,7 @@ L 531.565714 185.76
      </g>
     </g>
     <g id="text_4">
-     <text style="font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #344456" x="437.76" y="388.362656" transform="rotate(-0 437.76 388.362656)">czas do końca tekstu LLM [s]</text>
+     <text style="font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #344456" x="437.76" y="387.797969" transform="rotate(-0 437.76 387.797969)">time to end of LLM text [s]</text>
     </g>
    </g>
    <g id="matplotlib.axis_2">
@@ -97,7 +97,7 @@ L 502.611017 249.639652
 L 502.611017 214.666435 
 L 218.88 214.666435 
 z
-" clip-path="url(#pcfe6a30cb0)" style="fill: #235d9f"/>
+" clip-path="url(#p6a91bc67cc)" style="fill: #235d9f"/>
    </g>
    <g id="patch_4">
     <path d="M 218.88 321.013565 
@@ -105,16 +105,16 @@ L 574.419291 321.013565
 L 574.419291 286.040348 
 L 218.88 286.040348 
 z
-" clip-path="url(#pcfe6a30cb0)" style="fill: #087f80"/>
+" clip-path="url(#p6a91bc67cc)" style="fill: #087f80"/>
    </g>
    <g id="text_7">
-    <text style="font-weight: 700; font-size: 17px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="510.42816" y="236.569059" transform="rotate(-0 510.42816 236.569059)">18,148 s</text>
+    <text style="font-weight: 700; font-size: 17px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="510.42816" y="236.569059" transform="rotate(-0 510.42816 236.569059)">18.148 s</text>
    </g>
    <g id="text_8">
-    <text style="font-weight: 700; font-size: 17px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="582.236434" y="307.942972" transform="rotate(-0 582.236434 307.942972)">22,741 s</text>
+    <text style="font-weight: 700; font-size: 17px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="582.236434" y="307.942972" transform="rotate(-0 582.236434 307.942972)">22.741 s</text>
    </g>
    <g id="text_9">
-    <text style="font-weight: 700; font-size: 18px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="218.88" y="165.76" transform="rotate(-0 218.88 165.76)">A  Pełny kontekst HA</text>
+    <text style="font-weight: 700; font-size: 18px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="218.88" y="165.76" transform="rotate(-0 218.88 165.76)">A  Full HA context</text>
    </g>
   </g>
   <g id="axes_2">
@@ -131,7 +131,7 @@ z
      <g id="line2d_9">
       <path d="M 218.88 617.76 
 L 218.88 462.24 
-" clip-path="url(#p78bbc95003)" style="fill: none; stroke: #dce4ed; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#pbd5915b86c)" style="fill: none; stroke: #dce4ed; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_10"/>
      <g id="text_10">
@@ -142,7 +142,7 @@ L 218.88 462.24
      <g id="line2d_11">
       <path d="M 384.072453 617.76 
 L 384.072453 462.24 
-" clip-path="url(#p78bbc95003)" style="fill: none; stroke: #dce4ed; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#pbd5915b86c)" style="fill: none; stroke: #dce4ed; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_12"/>
      <g id="text_11">
@@ -153,7 +153,7 @@ L 384.072453 462.24
      <g id="line2d_13">
       <path d="M 549.264906 617.76 
 L 549.264906 462.24 
-" clip-path="url(#p78bbc95003)" style="fill: none; stroke: #dce4ed; stroke-width: 0.8; stroke-linecap: square"/>
+" clip-path="url(#pbd5915b86c)" style="fill: none; stroke: #dce4ed; stroke-width: 0.8; stroke-linecap: square"/>
      </g>
      <g id="line2d_14"/>
      <g id="text_12">
@@ -161,7 +161,7 @@ L 549.264906 462.24
      </g>
     </g>
     <g id="text_13">
-     <text style="font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #344456" x="437.76" y="656.202656" transform="rotate(-0 437.76 656.202656)">czas do końca tekstu LLM [s]</text>
+     <text style="font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #344456" x="437.76" y="655.637969" transform="rotate(-0 437.76 655.637969)">time to end of LLM text [s]</text>
     </g>
    </g>
    <g id="matplotlib.axis_4">
@@ -190,7 +190,7 @@ L 417.606521 503.064
 L 417.606521 479.736 
 L 218.88 479.736 
 z
-" clip-path="url(#p78bbc95003)" style="fill: #235d9f"/>
+" clip-path="url(#pbd5915b86c)" style="fill: #235d9f"/>
    </g>
    <g id="patch_7">
     <path d="M 218.88 551.664 
@@ -198,7 +198,7 @@ L 517.052377 551.664
 L 517.052377 528.336 
 L 218.88 528.336 
 z
-" clip-path="url(#p78bbc95003)" style="fill: #087f80"/>
+" clip-path="url(#pbd5915b86c)" style="fill: #087f80"/>
    </g>
    <g id="patch_8">
     <path d="M 218.88 600.264 
@@ -206,80 +206,80 @@ L 559.67203 600.264
 L 559.67203 576.936 
 L 218.88 576.936 
 z
-" clip-path="url(#p78bbc95003)" style="fill: #7961a8"/>
+" clip-path="url(#pbd5915b86c)" style="fill: #7961a8"/>
    </g>
    <g id="text_17">
-    <text style="font-weight: 700; font-size: 16px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="425.866143" y="495.55625" transform="rotate(-0 425.866143 495.55625)">1,203 s</text>
+    <text style="font-weight: 700; font-size: 16px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="425.866143" y="495.55625" transform="rotate(-0 425.866143 495.55625)">1.203 s</text>
    </g>
    <g id="text_18">
-    <text style="font-weight: 700; font-size: 16px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="525.312" y="544.15625" transform="rotate(-0 525.312 544.15625)">1,805 s</text>
+    <text style="font-weight: 700; font-size: 16px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="525.312" y="544.15625" transform="rotate(-0 525.312 544.15625)">1.805 s</text>
    </g>
    <g id="text_19">
-    <text style="font-weight: 700; font-size: 16px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="567.931653" y="592.75625" transform="rotate(-0 567.931653 592.75625)">2,063 s</text>
+    <text style="font-weight: 700; font-size: 16px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="567.931653" y="592.75625" transform="rotate(-0 567.931653 592.75625)">2.063 s</text>
    </g>
    <g id="text_20">
-    <text style="font-weight: 700; font-size: 18px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="218.88" y="441.24" transform="rotate(-0 218.88 441.24)">B  Krótkie wejście, bez kontekstu HA</text>
+    <text style="font-weight: 700; font-size: 18px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="218.88" y="441.24" transform="rotate(-0 218.88 441.24)">B  Short input, no HA context</text>
    </g>
   </g>
   <g id="text_21">
-   <text style="font-weight: 700; font-size: 27px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="63.36" y="71.800594" transform="rotate(-0 63.36 71.800594)">Modele NPU: czas to nie to samo co zgodność</text>
+   <text style="font-weight: 700; font-size: 27px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="63.36" y="70.627781" transform="rotate(-0 63.36 70.627781)">NPU models: time is not the same as compliance</text>
   </g>
   <g id="text_22">
-   <text style="font-size: 16px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #536578" x="63.36" y="108.7015" transform="rotate(-0 63.36 108.7015)">Historyczny zestaw: pełne HA / 31 narzędzi • stałe polskie zdanie • mediany 3 prób</text>
+   <text style="font-size: 16px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #536578" x="63.36" y="108.0615" transform="rotate(-0 63.36 108.0615)">Historic set: full HA / 31 tools • fixed Polish sentence • medians of 3 runs</text>
   </g>
   <g id="text_23">
-   <text style="font-weight: 700; font-size: 18px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="760.32" y="170.208" transform="rotate(-0 760.32 170.208)">Zgodność z poleceniem</text>
+   <text style="font-weight: 700; font-size: 18px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="760.32" y="170.208" transform="rotate(-0 760.32 170.208)">Command compliance</text>
   </g>
   <g id="text_24">
    <text style="font-weight: 700; font-size: 20px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #235d9f" x="760.32" y="221.184" transform="rotate(-0 760.32 221.184)">2/3  ·  Qwen3-1.7B</text>
   </g>
   <g id="text_25">
-   <text style="font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #536578" x="760.32" y="249.696" transform="rotate(-0 760.32 249.696)">1 próba: narzędzie zamiast zadanego zdania</text>
+   <text style="font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #536578" x="760.32" y="249.696" transform="rotate(-0 760.32 249.696)">1 run: a tool instead of the requested sentence</text>
   </g>
   <g id="text_26">
    <text style="font-weight: 700; font-size: 20px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #087f80" x="760.32" y="292.896" transform="rotate(-0 760.32 292.896)">3/3  ·  Qwen2.5-3B</text>
   </g>
   <g id="text_27">
-   <text style="font-size: 12.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #536578" x="760.32" y="321.408" transform="rotate(-0 760.32 321.408)">To test formy odpowiedzi, nie jakości sterowania HA.</text>
+   <text style="font-size: 12.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #536578" x="760.32" y="321.408" transform="rotate(-0 760.32 321.408)">This tests answer form, not HA control quality.</text>
   </g>
   <g id="text_28">
-   <text style="font-weight: 700; font-size: 18px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="760.32" y="438.048" transform="rotate(-0 760.32 438.048)">C  4B przy pełnym kontekście HA</text>
+   <text style="font-weight: 700; font-size: 18px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="760.32" y="438.048" transform="rotate(-0 760.32 438.048)">C  4B at full HA context</text>
   </g>
   <g id="text_29">
-   <text style="font-weight: 700; font-size: 16px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #7961a8" x="760.32" y="475.2" transform="rotate(-0 760.32 475.2)">QAIRT / kontekst 4 096:  SKIP</text>
+   <text style="font-weight: 700; font-size: 16px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #7961a8" x="760.32" y="475.2" transform="rotate(-0 760.32 475.2)">QAIRT / 4,096 context:  SKIP</text>
   </g>
   <g id="text_30">
-   <text style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #536578" transform="translate(760.32 516.467531)">Wejście ~7 800 tokenów nie mieściło się</text>
-   <text style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #536578" transform="translate(760.32 535.685187)">w skonfigurowanym oknie. Brak pomiaru czasu.</text>
+   <text style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #536578" transform="translate(760.32 516.185187)">Input ~7,800 tokens did not fit in the</text>
+   <text style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #536578" transform="translate(760.32 535.685187)">configured window. No timing measured.</text>
   </g>
   <g id="text_31">
-   <text style="font-weight: 700; font-size: 16px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #9b522e" x="760.32" y="563.328" transform="rotate(-0 760.32 563.328)">GGUF / kontekst 10 240:  FAIL</text>
+   <text style="font-weight: 700; font-size: 16px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #9b522e" x="760.32" y="563.328" transform="rotate(-0 760.32 563.328)">GGUF / 10,240 context:  FAIL</text>
   </g>
   <g id="text_32">
-   <text style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #536578" transform="translate(760.32 604.313188)">Błąd ładowania: FastRPC mmap / ENOMEM.</text>
-   <text style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #536578" transform="translate(760.32 623.813188)">Brak pomiaru czasu inferencji.</text>
+   <text style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #536578" transform="translate(760.32 604.313188)">Load error: FastRPC mmap / ENOMEM.</text>
+   <text style="font-size: 13px; font-family: 'DejaVu Sans'; fill: #536578" transform="translate(760.32 623.813188)">No inference timing measured.</text>
   </g>
   <g id="text_33">
-   <text style="font-weight: 700; font-size: 15px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="63.36" y="703.296" transform="rotate(-0 63.36 703.296)">Bez STT, rzeczywistego wykonania narzędzi HA / drugiej rundy LLM i TTS.</text>
+   <text style="font-weight: 700; font-size: 15px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="63.36" y="703.296" transform="rotate(-0 63.36 703.296)">No STT, no real HA tool execution / second LLM round, no TTS.</text>
   </g>
   <g id="text_34">
-   <text style="font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="63.36" y="733.536" transform="rotate(-0 63.36 733.536)">Zgodność = dokładny tekst / forma, bez niespodziewanego narzędzia, z poprawnym zakończeniem.</text>
+   <text style="font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #14283e" x="63.36" y="733.536" transform="rotate(-0 63.36 733.536)">Compliance = exact text / form, no unexpected tool, correct ending.</text>
   </g>
   <g id="text_35">
-   <text style="font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #536578" x="63.36" y="762.048" transform="rotate(-0 63.36 762.048)">SKIP nie dowodzi niemożliwości uruchomienia 4B; FAIL dotyczy jednej próby, nie wszystkich konfiguracji.</text>
+   <text style="font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #536578" x="63.36" y="762.048" transform="rotate(-0 63.36 762.048)">SKIP does not prove 4B cannot run; FAIL concerns one attempt, not all configs.</text>
   </g>
   <g id="text_36">
-   <text style="font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #536578" x="63.36" y="790.56" transform="rotate(-0 63.36 790.56)">4B QAIRT (2507) i 4B GGUF to różne checkpointy. Krótkie wejście nie jest testem całego głosu ani pełnego HA.</text>
+   <text style="font-size: 13px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #536578" x="63.36" y="790.56" transform="rotate(-0 63.36 790.56)">4B QAIRT (2507) and 4B GGUF are different checkpoints. Short input is not a test of the full voice or full HA.</text>
   </g>
   <g id="text_37">
-   <text style="font-size: 12px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #536578" x="63.36" y="827.712" transform="rotate(-0 63.36 827.712)">Źródło: wnioski.md • historyczny benchmark NPU z rezydentnym WhisperSmallNPU; bez pomiarów CPU.</text>
+   <text style="font-size: 12px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #536578" x="63.36" y="827.712" transform="rotate(-0 63.36 827.712)">Source: wnioski.md • historic NPU benchmark with a resident WhisperSmallNPU; no CPU measurements.</text>
   </g>
  </g>
  <defs>
-  <clipPath id="pcfe6a30cb0">
+  <clipPath id="p6a91bc67cc">
    <rect x="218.88" y="185.76" width="437.76" height="164.16"/>
   </clipPath>
-  <clipPath id="p78bbc95003">
+  <clipPath id="pbd5915b86c">
    <rect x="218.88" y="462.24" width="437.76" height="155.52"/>
   </clipPath>
  </defs>

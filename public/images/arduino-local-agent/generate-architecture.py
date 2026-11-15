@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render the architecture diagram (architecture.png) with matplotlib.
 
-Coordinates mirror architecture.svg (top-down, 1240x760). No private data.
+Coordinates mirror architecture.svg (top-down, 1240x760). English/minimal labels.
 Run: MPLCONFIGDIR=/tmp/mplconfig /tmp/chartvenv/bin/python generate-architecture.py
 """
 import matplotlib
@@ -44,39 +44,39 @@ fig.patch.set_facecolor('white')
 # LVA microphone
 box(ax, 470, 28, 300, 66, NEU_F, NEU_E)
 txt(ax, 620, 55, 'Linux Voice Assistant', 15, 'bold')
-txt(ax, 620, 76, 'mikrofon · wybudzanie «Okay Nabu»', 12.5)
+txt(ax, 620, 76, 'microphone · wake word «Okay Nabu»', 12.5)
 
 # Home Assistant
 box(ax, 270, 170, 700, 72, HA_F, HA_E, lw=2.5)
 txt(ax, 620, 198, 'Home Assistant', 16, 'bold')
-txt(ax, 620, 220, 'orkiestracja etapów · wykonanie narzędzi (tool_calls)', 12.5)
+txt(ax, 620, 220, 'orchestration · tool execution (tool_calls)', 12.5)
 
 # STT
 box(ax, 60, 330, 340, 92, NPU_F, NPU_E, lw=2.5)
-txt(ax, 230, 358, 'STT · mowa → tekst', 14.5, 'bold', '#1e3a8a')
+txt(ax, 230, 358, 'STT · speech → text', 14.5, 'bold', '#1e3a8a')
 txt(ax, 230, 380, 'Whisper Large-v3-Turbo W8A16', 12.5, color='#1e40af')
-txt(ax, 230, 400, 'encoder + decoder na NPU', 12.5, color='#1e40af')
+txt(ax, 230, 400, 'encoder + decoder on NPU', 12.5, color='#1e40af')
 
 # Gateway
 box(ax, 450, 300, 340, 212, '#f8fafc', MUT, lw=2, ls='--', r=10)
-txt(ax, 620, 322, 'bramka LLM · port 18191', 13, 'bold', MUT)
+txt(ax, 620, 322, 'LLM gateway · port 18191', 13, 'bold', MUT)
 box(ax, 470, 336, 300, 66, RUL_F, RUL_E, r=8)
-txt(ax, 620, 360, 'wąski router regułowy (CPU)', 13, 'bold', '#92400e')
-txt(ax, 620, 382, 'jednoznaczne polecenia → tool_calls do HA', 12, color='#92400e')
+txt(ax, 620, 360, 'narrow rule router (CPU)', 13, 'bold', '#92400e')
+txt(ax, 620, 382, 'unambiguous commands → tool_calls to HA', 12, color='#92400e')
 box(ax, 470, 420, 300, 72, NPU_F, NPU_E, r=8)
 txt(ax, 620, 446, 'Qwen2.5-3B-Instruct Q4_0', 13.5, 'bold', '#1e3a8a')
-txt(ax, 620, 468, 'NPU (Hexagon, HTP0) · pozostałe żądania', 12, color='#1e40af')
+txt(ax, 620, 468, 'NPU (Hexagon, HTP0) · other requests', 12, color='#1e40af')
 
 # TTS
 box(ax, 840, 330, 340, 92, CPU_F, CPU_E, lw=2.5)
-txt(ax, 1010, 358, 'TTS · tekst → mowa', 14.5, 'bold', '#14532d')
+txt(ax, 1010, 358, 'TTS · text → speech', 14.5, 'bold', '#14532d')
 txt(ax, 1010, 380, 'Pocket TTS Polish', 12.5, color='#15803d')
-txt(ax, 1010, 400, 'CPU · runtime Rust ARM64', 12.5, color='#15803d')
+txt(ax, 1010, 400, 'CPU · Rust ARM64 runtime', 12.5, color='#15803d')
 
 # LVA speaker
 box(ax, 470, 650, 300, 66, NEU_F, NEU_E)
 txt(ax, 620, 677, 'Linux Voice Assistant', 15, 'bold')
-txt(ax, 620, 698, 'odtwarzanie odpowiedzi', 12.5)
+txt(ax, 620, 698, 'answer playback', 12.5)
 
 # Arrows
 arrow(ax, 620, 94, 620, 170)                    # mic -> HA
@@ -91,13 +91,14 @@ txt(ax, 300, 310, 'tool_calls', 12, color='#b45309')
 
 # Legend
 box(ax, 40, 650, 330, 88, '#ffffff', '#cbd5e1', lw=1.5, r=8)
-txt(ax, 60, 672, 'Legenda', 12.5, 'bold', '#334155', ha='left')
+txt(ax, 60, 672, 'Legend', 12.5, 'bold', '#334155', ha='left')
 box(ax, 56, 684, 14, 14, NPU_F, NPU_E, lw=1.5, r=3)
 txt(ax, 78, 691, 'NPU (Hexagon)', 12, color='#334155', ha='left')
 box(ax, 180, 684, 14, 14, CPU_F, CPU_E, lw=1.5, r=3)
 txt(ax, 202, 691, 'CPU', 12, color='#334155', ha='left')
 box(ax, 56, 708, 14, 14, RUL_F, RUL_E, lw=1.5, r=3)
-txt(ax, 78, 715, 'logika regułowa', 12, color='#334155', ha='left')
+txt(ax, 78, 715, 'rule logic', 12, color='#334155', ha='left')
 
 plt.savefig('architecture.png', dpi=200, facecolor='white', bbox_inches='tight', pad_inches=0.08)
-print('saved architecture.png')
+plt.savefig('architecture.svg', format='svg', facecolor='white', bbox_inches='tight', pad_inches=0.08)
+print('saved architecture')

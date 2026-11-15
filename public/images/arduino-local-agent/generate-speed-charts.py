@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render STT and TTS speed charts (stt-speed-comparison, tts-speed-comparison).
 
-Historical measurements, not a single unified benchmark. No private data.
+English/minimal labels. Historical measurements, not a single unified benchmark.
 Run: MPLCONFIGDIR=/tmp/mplconfig /tmp/chartvenv/bin/python generate-speed-charts.py
 """
 import matplotlib
@@ -41,15 +41,14 @@ ax.set_yticks(y)
 ax.set_yticklabels(labels, fontsize=13, color=INK)
 ax.tick_params(axis='x', labelsize=11, colors=MUT)
 label_axis(ax)
-ax.set_xlabel('sekundy (oś logarytmiczna) — transkrypcja przygotowanego klipu 2,832 s', fontsize=12, color=MUT)
-ax.set_title('STT: CPU kontra NPU oraz model na NPU', fontsize=15, fontweight='bold', color=INK, pad=14)
+ax.set_xlabel('seconds (log scale) — transcription of a prepared 2.832 s clip', fontsize=12, color=MUT)
+ax.set_title('STT: CPU vs NPU, and the model on NPU', fontsize=15, fontweight='bold', color=INK, pad=14)
 
 for b, v in zip(bars, values):
     ax.text(v * 1.12, b.get_y() + b.get_height() / 2, f'{pl(v)} s', va='center', ha='left',
             fontsize=12.5, fontweight='bold', color=INK)
 
-# annotation: NPU speedup vs CPU
-ax.annotate('≈28× szybciej\n(12 s → 0,43 s)', xy=(0.429, y[-1]), xytext=(2.5, y[0] + 0.9),
+ax.annotate('≈28× faster\n(12 s → 0.43 s)', xy=(0.429, y[-1]), xytext=(2.5, y[0] + 0.9),
             fontsize=12, color=OLD, fontweight='bold',
             arrowprops=dict(arrowstyle='-|>', color=OLD, lw=1.5))
 
@@ -60,7 +59,7 @@ plt.close(fig)
 
 # ===================== TTS =====================
 fig, ax = plt.subplots(figsize=(12, 5.2), dpi=200)
-labels = ['Python/PyTorch\n(pierwsze PCM)', 'Rust ARM64\n(pierwsze PCM)']
+labels = ['Python/PyTorch\n(first PCM)', 'Rust ARM64\n(first PCM)']
 values = [5.653, 0.8]
 colors = [OLD, CPU]
 y = np.arange(len(labels))[::-1]
@@ -71,14 +70,14 @@ ax.set_yticks(y)
 ax.set_yticklabels(labels, fontsize=13, color=INK)
 ax.tick_params(axis='x', labelsize=11, colors=MUT)
 label_axis(ax)
-ax.set_xlabel('sekundy — czas do pierwszych próbek PCM u klienta Wyoming', fontsize=12, color=MUT)
-ax.set_title('TTS: ten sam model, szybszy runtime (Python → Rust)', fontsize=15, fontweight='bold', color=INK, pad=14)
+ax.set_xlabel('seconds — time to first PCM samples at the Wyoming client', fontsize=12, color=MUT)
+ax.set_title('TTS: same model, faster runtime (Python → Rust)', fontsize=15, fontweight='bold', color=INK, pad=14)
 
 for b, v in zip(bars, values):
     ax.text(v + 0.08, b.get_y() + b.get_height() / 2, f'{pl(v)} s', va='center', ha='left',
             fontsize=12.5, fontweight='bold', color=INK)
 
-ax.annotate('≈7× szybciej', xy=(0.8, y[0]), xytext=(2.6, y[1] + 0.75),
+ax.annotate('≈7× faster', xy=(0.8, y[0]), xytext=(2.6, y[1] + 0.75),
             fontsize=12.5, color=OLD, fontweight='bold',
             arrowprops=dict(arrowstyle='-|>', color=OLD, lw=1.5))
 

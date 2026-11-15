@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render TTS delivery-time-by-audio-length chart (tts-length-chart.png/.svg).
 
-Current Rust streaming solution, three real production/lab samples. No private data.
+English/minimal labels. Current Rust streaming solution, three real samples.
 Run: MPLCONFIGDIR=/tmp/mplconfig /tmp/chartvenv/bin/python generate-tts-length-chart.py
 """
 import matplotlib
@@ -20,20 +20,20 @@ def pl(v, nd=2):
 
 
 fig, ax = plt.subplots(figsize=(12, 5.6), dpi=200)
-labels = ['krótka\n(1,5 s audio)', 'średnia\n(6,6 s audio)', 'długa\n(11,4 s audio)']
+labels = ['short\n(1.5 s audio)', 'medium\n(6.6 s audio)', 'long\n(11.4 s audio)']
 first = [0.793, 0.956, 0.801]
 full = [0.818, 2.327, 3.775]
 x = np.arange(len(labels))
 w = 0.34
 
-b1 = ax.bar(x - w/2, first, width=w, color=FIRST, label='pierwsze PCM', zorder=3)
-b2 = ax.bar(x + w/2, full, width=w, color=FULL, label='całość PCM', zorder=3)
+b1 = ax.bar(x - w/2, first, width=w, color=FIRST, label='first PCM', zorder=3)
+b2 = ax.bar(x + w/2, full, width=w, color=FULL, label='full PCM', zorder=3)
 
 ax.set_xticks(x)
 ax.set_xticklabels(labels, fontsize=13, color=INK)
-ax.set_ylabel('sekundy', fontsize=12, color=MUT)
+ax.set_ylabel('seconds', fontsize=12, color=MUT)
 ax.set_ylim(0, 4.4)
-ax.set_title('TTS (Rust, streaming): czas dostarczenia wg długości nagrania', fontsize=15, fontweight='bold', color=INK, pad=14)
+ax.set_title('TTS (Rust, streaming): delivery time by utterance length', fontsize=15, fontweight='bold', color=INK, pad=14)
 for s in ('top', 'right'):
     ax.spines[s].set_visible(False)
 ax.tick_params(axis='y', labelsize=11, colors=MUT)
@@ -44,7 +44,7 @@ for bars in (b1, b2):
                 f'{pl(b.get_height())} s', ha='center', va='bottom',
                 fontsize=12, fontweight='bold', color=INK)
 
-ax.annotate('pierwsze PCM ~0,8 s niezależnie od długości\n(strumieniowanie trzyma start nisko)',
+ax.annotate('first PCM ~0.8 s regardless of length\n(streaming keeps the start low)',
             xy=(0, 0.793), xytext=(0.9, 1.7),
             fontsize=12, color=FIRST, fontweight='bold',
             arrowprops=dict(arrowstyle='-|>', color=FIRST, lw=1.5))

@@ -5,8 +5,10 @@ date: "2026-11-15"
 description: "Whisper Large-v3-Turbo i Qwen na NPU, polski Pocket TTS na CPU Arduino VENTUNO Q. Lokalny asystent Home Assistant, pomiary i granice dotychczasowych testów."
 image: "/images/arduino-local-agent/ha-context-before-after.png"
 lang: "pl"
+translationKey: "arduino-local-agent"
+translationListing: "combined"
 tags: ["Home Assistant", "Arduino", "NPU", "SLM", "AI", "Whisper"]
-draft: true
+draft: false
 ---
 
 ## 1. Od benchmarku do asystenta
@@ -106,7 +108,7 @@ Ta zmiana skróciła oczekiwanie na pierwsze próbki dźwięku z **5,65 s do 0,8
 
 ## 7. Połączenie z HA i start usług
 
-Od strony HA pozostają trzy połączenia: **STT przez Wyoming**, **agent przez zgodne API OpenAI** i **polski TTS przez Wyoming**. Numery portów (`10301`, `18191`, `10201`) to wartości z konfiguracji w repozytorium tej implementacji (pliki `*.service` i `docker-compose.yml`, patrz README) - są umowne, to nie wymóg protokołu, tylko moja implementacja: można je zmienić, ważne, by HA i usługi zgadzały się co do adresów. W asystencie trzeba przypisać właściwe etapy i świadomie wybrać udostępnione encje.
+Od strony HA pozostają trzy połączenia: **STT przez Wyoming**, **agent przez zgodne API OpenAI** i **polski TTS przez Wyoming**. Numery portów (`10301`, `18191`, `10201`) to wartości z konfiguracji tej implementacji (patrz README). Folder `ha-local-agent/` zawiera bramkę, router i instalator usług agenta; Whisper, Pocket TTS i satelita LVA wymagają osobnego przygotowania. Porty są umowne, to nie wymóg protokołu, tylko moja implementacja: można je zmienić, ważne, by HA i usługi zgadzały się co do adresów. W asystencie trzeba przypisać właściwe etapy i świadomie wybrać udostępnione encje.
 
 ### Integracja: Local OpenAI LLM
 
