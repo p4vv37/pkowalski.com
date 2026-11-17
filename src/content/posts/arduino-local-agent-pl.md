@@ -11,6 +11,59 @@ tags: ["Home Assistant", "Arduino", "NPU", "SLM", "AI", "Whisper"]
 draft: false
 ---
 
+## Edit 17.11.2026 - Qwen wreszcie korzysta z KV cache
+
+Największe przyspieszenie przyszło po aktualizacji **GenieX z 0.9.3 do 0.11.0** i zmianie bramki. Model nadal jest ten sam: Qwen2.5-3B-Instruct Q4_0 na NPU. Zmieniło się to, ile pracy musi wykonać przy kolejnym pytaniu.
+
+### Co jest przechowywane w cache
+
+Przed wygenerowaniem odpowiedzi LLM przetwarza całe wejście. Ten etap, prefill, obejmuje instrukcje, opis domu, narzędzia i historię rozmowy. KV cache przechowuje wyniki obliczeń uwagi dla już przetworzonych tokenów. Jeżeli następne żądanie ma taki sam początek, można ponownie wykorzystać ten prefiks i przeliczyć tylko dalszą część.
+
+To nie jest słownik gotowych odpowiedzi. Nowe pytanie i wynik działania narzędzia nadal są przetwarzane, a model generuje nową odpowiedź. Zmiana wcześniejszych danych skraca zgodny prefiks. Stany urządzeń muszą pozostać aktualne.
+
+W 0.9.3 serwer potrafił resetować sesję przy zmianie pytania. Dodatkowo moja bramka przed każdym żądaniem wysyłała krótki wewnętrzny reset, bo identyczne powtórzenie promptu mogło kończyć się pustą odpowiedzią. To obejście pomagało zachować poprawność, ale odbierało korzyść z cache. W 0.11.0 jest [poprawka ponownego używania prefiksów](https://github.com/qualcomm/GenieX/pull/1624) oraz [raportowanie wykorzystanych tokenów cache](https://github.com/qualcomm/GenieX/pull/1632).
+
+W nowej bramce domyślna polityka to **`CACHE_POLICY=reuse`**, bez wewnętrznego resetu przed każdym żądaniem. Tryb `reset` pozostał dla starszego runtime'u i porównań. 
+
+### Wyniki dla stałego prefiksu
+
+W teście z syntetycznym kontekstem długości 3164 tokenów wysłałem nowe pytanie, jego identyczne powtórzenie oraz zmienione pytanie. Model był już załadowany. Każda odpowiedź została sprawdzona.
+
+| Żądanie | Tokeny z cache | Przeliczone tokeny | Prefill | Całe żądanie |
+| --- | ---: | ---: | ---: | ---: |
+| Nowy prefiks | 3 | 3161 | 6,823 s | 7,035 s |
+| Identyczne powtórzenie | 3163 | 1 | 0,064 s | 0,185 s |
+| Zmienione pytanie | 3156 | 8 | 0,153 s | 0,294 s |
+
+Dla zmienionego pytania całe żądanie było około **24 razy szybsze**. Ważniejszy od samego czasu jest licznik: zamiast ponownie przetwarzać ponad trzy tysiące tokenów, backend przetworzył osiem. Pusta odpowiedź nie byłaby sukcesem tego testu.
+
+### Co pokazały rozmowy przez HA
+
+Cache działa również z rzeczywistym kontekstem HA i 15 narzędziami. Poniżej pojedyncze obserwacje z metryk bramki, bez STT, TTS i odtwarzania:
+
+| Żądanie | Tokeny wejścia / z cache | Prefill | Generowanie | Całe żądanie |
+| --- | ---: | ---: | ---: | ---: |
+| Pierwsza odpowiedź tekstowa | 3346 / 3 | 7,308 s | 1,847 s | 9,304 s |
+| Kolejna odpowiedź tekstowa | 3340 / 3323 | 0,155 s | 3,447 s | 3,725 s |
+| Wywołanie narzędzia przez LLM | 3347 / 3322 | 0,161 s | 3,637 s | 3,862 s |
+
+To różne wypowiedzi i różne długości wyjścia: odpowiednio 27, 51 i 53 tokeny. Nie traktuję ich jako porównania identycznych zadań. Pokazują jednak, że długi kontekst domu przestał być przeliczany od nowa przy każdym pytaniu. Pierwszy fragment kolejnej odpowiedzi tekstowej dotarł do bramki po około **261 ms**, wobec 7,44 s przy pierwszym żądaniu.
+
+Przeszły także wywołania narzędzi w JSON i SSE oraz kontynuacja po symulowanym wyniku narzędzia. W rozgrzanym routerze decyzja dla rzeczywistej komendy zajęła **0,895 ms**, a cała obsługa bramki **2,565 ms**. Pierwsze użycie routera miało jednak koszt 4,28 s, zgodny z hipotezą inicjalizacji słowników i indeksu. Tego wyniku nie chowam za średnią.
+
+W kolejnej serii rzeczywistych rozmów sprawdziłem siedem wywołań LLM, w tym odpowiedzi po wykonaniu narzędzia. **Wszystkie korzystały z cache**, ponownie używając około **97-99,6% tokenów wejścia**. Prefill trwał **151-294 ms**. Nie było więc powrotu do przeliczania całego opisu domu.
+
+Pozostały koszt dobrze widać na dwóch przebiegach:
+
+| Przebieg | Pierwsze wywołanie LLM | Odpowiedź po wyniku narzędzia | Co faktycznie się stało |
+| --- | ---: | ---: | --- |
+| Zapytanie o kontekst zamiast otwarcia zasłon | 2,33 s | 1,25 s | Model odczytał stan i powiedział, że zasłona jest zamknięta |
+| Próba sterowania z niedopasowaną nazwą | 2,89 s | 0,002 s, odpowiedź routera | HA odrzucił nazwę urządzenia, bramka zwróciła krótkie potwierdzenie błędu |
+
+Model generował około **14-15 tokenów na sekundę**. Sam zapis argumentów narzędzia zajmował około dwóch lub trzech sekund, mimo trafienia w cache. W pierwszym przebiegu doszła jeszcze druga runda LLM. Krótkie pytanie użytkownika nie oznacza krótkiego wyjścia modelu, gdy musi on zapisać nazwę funkcji i argumenty w JSON.
+
+*Poniższy opis i wykresy przedstawiają pierwotne pomiary z 15.11.2026. Wyniki bez cache pozostają punktem odniesienia dla tej aktualizacji.*
+
 ## 1. Od benchmarku do asystenta
 
 W [poprzednim eksperymencie z Bielikiem](/bielik-arduino-ventuno-q-pl/) sprawdzałem, jak duży model można uruchomić na Arduino VENTUNO Q. Tym razem chciałem zrobić z płytki coś użytkowego: lokalnego asystenta głosowego dla Home Assistant, z którym można rozmawiać po polsku.
@@ -126,13 +179,13 @@ Wybrałem integrację społecznościową [Local OpenAI LLM](https://github.com/s
 
 Integracja to cienka warstwa: przekazuje schematy narzędzi HA jako `tools`, a wyniki wywołań jako `role: tool` w kolejnej iteracji (pętla do 10 iteracji). Sterowanie nadal wykonuje HA - ani bramka, ani integracja nie ruszają urządzeń same.
 
-Bramka serializuje żądania, obsługuje różnice w streamingu i ma obejście pustej odpowiedzi przy identycznym powtórzeniu pytania.
+Bramka serializuje żądania i obsługuje różnice w streamingu. W pierwotnym wdrożeniu miała obejście pustej odpowiedzi przy identycznym powtórzeniu pytania. Po aktualizacji opisanej w Edit domyślnie zachowuje KV cache.
 
 ![Konfiguracja asystenta Home Assistant - przypisane STT, agent i TTS.](/images/arduino-local-agent/ha-assistant-config.jpg)
 
 ![Ustawienia agenta Local OpenAI - narzędzia i zakres ekspozycji.](/images/arduino-local-agent/ha-agent-settings.jpg)
 
-Aktualna jednostka STT i boot guard wskazują już Turbo. Pilnują kolejności oraz tego, by nie ładować równocześnie kilku wariantów STT na NPU, nie wykonują automatycznego fallbacku na CPU. TTS ma politykę automatycznego startu `unless-stopped`. **Po najnowszych zmianach Turbo i Rust nie przeprowadziłem pełnego rebootu płytki.** Zmiana konfiguracji autostartu i pomyślne testy usług nie zastępują takiego sprawdzianu.
+Aktualna jednostka STT i boot guard wskazują już Turbo. Pilnują kolejności oraz tego, by nie ładować równocześnie kilku wariantów STT na NPU, nie wykonują automatycznego fallbacku na CPU. TTS ma politykę automatycznego startu `unless-stopped`. **W pierwotnym opisie z 15.11 nie miałem jeszcze pełnego testu rebootu po zmianach Turbo i Rust.** Aktualizacja opisana w Edit przeszła zimny start Qwena 0.11.0 i późniejsze uruchomienie Whispera. Pełny restart całego toru po kolejnych zmianach TTS pozostaje osobnym sprawdzianem.
 
 ![Przykład rzeczywistej rozmowy (zanonimizowanej).](/images/arduino-local-agent/ha-conversation.jpg)
 
@@ -178,7 +231,7 @@ Największy problem projektu jest oczywisty: **3B to za mało na skomplikowane m
 
 - **Za mało na głębsze rozumowanie.** Qwen2.5-3B dobrze kopiuje zdania i wybiera narzędzia w jednoznacznym kontekście, ale to nie model do wielokrokowego planowania, łączenia faktów z kilku narzędzi ani wyjaśniania zależności. Im trudniejsze polecenie, tym większe ryzyko zmyślonych argumentów.
 - **Za wolno na pełny kontekst.** Pełny prefill z opisem encji i narzędziami to około **20 s**. W rozmowie głosowej to za długo. Stąd kierunek „mniej kontekstu + router".
-- **Bez ponownego użycia KV.** Serwer resetuje sesję przy zmianie pytania, więc długi wspólny prefiks jest liczony od nowa przy każdym żądaniu. Użycie cache może pomóc przyspieszyć odpowiedź.
+- **Koszt pierwszego prefilla.** W pierwotnym wdrożeniu wspólny prefiks był liczony od nowa przy każdym żądaniu. Aktualizacja do 0.11.0 opisana w Edit umożliwiła ponowne użycie KV. Pierwsze wejście i zmiana wczesnej części kontekstu nadal wymagają przeliczenia odpowiednich tokenów.
 - **Współdzielenie jednego NPU.** Whisper (STT) i Qwen (LLM) muszą dzielić ten sam akcelerator Hexagon. Równoczesne ładowanie kilku modeli bywa niestabilne, a przy napiętej pamięci wariant 4B GGUF w ogóle się nie załadował (FastRPC ENOMEM).
 
 Zapisy rzeczywistych rozmów pokazują już czasy STT i obsługi intencji, a także pojedynczy duży skok opóźnienia przed zakończeniem STT. Kolejny krok to wyjaśnienie tego przypadku i pomiar początku odtwarzania na głośniku. Chcę sprawdzić obie ścieżki, lokalne polecenia oraz rozmowę przez agenta, żeby ocenić czas rzeczywiście odczuwany przez użytkownika.
