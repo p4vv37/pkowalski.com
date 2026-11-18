@@ -23,7 +23,7 @@ The assumption was simple: the models that recognize speech, prepare the answer,
 
 Ultimately three networks run on the board: **Whisper Large-v3-Turbo, Qwen2.5-3B, and Polish Pocket TTS**. The first two use the NPU, the last uses the CPU. **Linux Voice Assistant (LVA)** handles the local "Okay Nabu" wake word. The microphone and speaker are a single USB conference speakerphone. The biggest challenge was selecting fast, fully compatible components for the voice path and integrating them into a working system.
 
-**Code and install:** [github.com/p4vv37/ha-local-agent](https://github.com/p4vv37/ha-local-agent#readme) - the gateway, the router, and the recipe for running the whole setup on Arduino.
+**Code and install:** [Domuno — github.com/p4vv37/domuno](https://github.com/p4vv37/domuno#readme) - the gateway, the router, and the recipe for running the whole setup on Arduino.
 
 ![Arduino VENTUNO Q with a USB conference speakerphone (microphone and speaker in one device).](/images/arduino-local-agent/foto.jpg)
 
@@ -117,7 +117,7 @@ The wait for the first audio samples fell from **5.65 s to about 0.8 s**. This i
 
 HA connects to **STT over Wyoming** on port `10301`, the **agent gateway** on `18191`, and **TTS over Wyoming** on `10201`. The ports can be changed as long as the addresses in HA and the services match.
 
-The full setup recipe is in the [ha-local-agent repository README](https://github.com/p4vv37/ha-local-agent#readme). It covers preparing GenieX and Qwen, the gateway with the router, Whisper on the NPU, Polish Pocket TTS, and the LVA satellite. The wrapper code and the instructions for the other components are in one place.
+The full setup recipe is in the [Domuno repository README](https://github.com/p4vv37/domuno#readme). It covers preparing GenieX and Qwen, the gateway with the router, Whisper on the NPU, Polish Pocket TTS, and the LVA satellite. The wrapper code and the instructions for the other components are in one place.
 
 ### Integration: Local OpenAI LLM
 

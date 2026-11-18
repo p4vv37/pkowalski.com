@@ -23,7 +23,7 @@ Założenie było proste: modele rozpoznające mowę, przygotowujące odpowiedź
 
 Ostatecznie na płytce działają trzy sieci: **Whisper Large-v3-Turbo, Qwen2.5-3B i polski Pocket TTS**. Dwie pierwsze korzystają z NPU, ostatnia z CPU. **Linux Voice Assistant (LVA)** obsługuje lokalne wybudzanie „Okay Nabu”. Mikrofon i głośnik to jeden głośnik konferencyjny USB. Największym wyzwaniem był dobór wydajnych, w pełni kompatybilnych elementów toru głosowego oraz zintegrowanie ich w działający system.
 
-**Kod i instalacja:** [github.com/p4vv37/ha-local-agent](https://github.com/p4vv37/ha-local-agent#readme) - bramka, router i przepis uruchomienia całego zestawu na Arduino.
+**Kod i instalacja:** [Domuno — github.com/p4vv37/domuno](https://github.com/p4vv37/domuno#readme) - bramka, router i przepis uruchomienia całego zestawu na Arduino.
 
 ![Arduino VENTUNO Q z głośnikiem konferencyjnym USB (mikrofon i głośnik w jednym urządzeniu).](/images/arduino-local-agent/foto.jpg)
 
@@ -117,7 +117,7 @@ Oczekiwanie na pierwsze próbki dźwięku skróciło się z **5,65 s do około 0
 
 HA łączy się ze **STT przez Wyoming** na porcie `10301`, **bramką agenta** na `18191` i **TTS przez Wyoming** na `10201`. Porty można zmienić, jeśli adresy w HA i usługach będą zgodne.
 
-Pełny przepis uruchomienia zestawu znajduje się w [README repozytorium ha-local-agent](https://github.com/p4vv37/ha-local-agent#readme). Obejmuje przygotowanie GenieX i Qwena, bramki z routerem, Whispera na NPU, polskiego Pocket TTS oraz satelity LVA. Kod wrappera i instrukcje przygotowania pozostałych komponentów są w jednym miejscu.
+Pełny przepis uruchomienia zestawu znajduje się w [README repozytorium Domuno](https://github.com/p4vv37/domuno#readme). Obejmuje przygotowanie GenieX i Qwena, bramki z routerem, Whispera na NPU, polskiego Pocket TTS oraz satelity LVA. Kod wrappera i instrukcje przygotowania pozostałych komponentów są w jednym miejscu.
 
 ### Integracja: Local OpenAI LLM
 
