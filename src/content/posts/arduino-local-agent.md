@@ -2,6 +2,8 @@
 title: "Local Home Assistant voice agent on Arduino VENTUNO Q"
 slug: "arduino-local-agent"
 date: "2026-11-15"
+updated: "2026-11-17"
+updateSummary: "After the GenieX 0.11.0 update, Qwen uses the KV cache. Prefill for a 3164-token context dropped from 6.823 s to 0.064 s, and the whole request was about 24 times faster."
 description: "Whisper Large-v3-Turbo and Qwen on the NPU, Polish Pocket TTS on the CPU of an Arduino VENTUNO Q. A local Home Assistant assistant, measurements, and the limits of testing so far."
 image: "/images/arduino-local-agent/ha-context-before-after.png"
 lang: "en"
@@ -10,59 +12,6 @@ translationListing: "combined"
 tags: ["Home Assistant", "Arduino", "NPU", "SLM", "AI", "Whisper"]
 draft: false
 ---
-
-## Edit 17 November 2026 - Qwen finally uses the KV cache
-
-The biggest speedup came after upgrading **GenieX from 0.9.3 to 0.11.0** and changing the gateway. The model is still the same: Qwen2.5-3B-Instruct Q4_0 on the NPU. What changed is how much work it has to do on the next question.
-
-### What is stored in the cache
-
-Before generating an answer, the LLM processes the entire input. This stage, prefill, covers the instructions, the home description, the tools, and the conversation history. The KV cache stores the attention computation results for tokens already processed. If the next request has the same beginning, that prefix can be reused and only the later part has to be recomputed.
-
-This is not a dictionary of ready-made answers. The new question and the tool result are still processed, and the model generates a new answer. A change to earlier data shortens the matching prefix. Device states have to stay current.
-
-In 0.9.3 the server would reset the session when the question changed. On top of that, my gateway sent a short internal reset before every request, because an identical repeated prompt could end in an empty response. That workaround helped preserve correctness, but it took away the benefit of the cache. 0.11.0 includes a [fix for prefix reuse](https://github.com/qualcomm/GenieX/pull/1624) and [reporting of cache token usage](https://github.com/qualcomm/GenieX/pull/1632).
-
-In the new gateway, the default policy is **`CACHE_POLICY=reuse`**, with no internal reset before each request. The `reset` mode remains for the older runtime and for comparisons.
-
-### Results for a fixed prefix
-
-In the test with a synthetic context 3164 tokens long, I sent a new question, an identical repeat of it, and a changed question. The model was already loaded. Every answer was verified.
-
-| Request | Cached tokens | Recomputed tokens | Prefill | Whole request |
-| --- | ---: | ---: | ---: | ---: |
-| New prefix | 3 | 3161 | 6.823 s | 7.035 s |
-| Identical repeat | 3163 | 1 | 0.064 s | 0.185 s |
-| Changed question | 3156 | 8 | 0.153 s | 0.294 s |
-
-For the changed question, the whole request was about **24 times faster**. The counter matters more than the time itself: instead of processing more than three thousand tokens again, the backend processed eight. An empty answer would not count as a success in this test.
-
-### What the HA conversations showed
-
-The cache also works with the real HA context and 15 tools. Below are individual observations from the gateway metrics, without STT, TTS, and playback:
-
-| Request | Input / cached tokens | Prefill | Generation | Whole request |
-| --- | ---: | ---: | ---: | ---: |
-| First text answer | 3346 / 3 | 7.308 s | 1.847 s | 9.304 s |
-| Next text answer | 3340 / 3323 | 0.155 s | 3.447 s | 3.725 s |
-| LLM tool call | 3347 / 3322 | 0.161 s | 3.637 s | 3.862 s |
-
-These are different utterances with different output lengths: 27, 51, and 53 tokens respectively. I don't treat them as a comparison of identical tasks. They do show, however, that the long home context is no longer recomputed from scratch on every question. The first fragment of the next text answer reached the gateway after about **261 ms**, versus 7.44 s for the first request.
-
-Tool calls in JSON and SSE also went through, as did the continuation after a simulated tool result. With the router warmed up, the decision for a real command took **0.895 ms**, and the whole gateway handling took **2.565 ms**. The first use of the router, however, cost 4.28 s, consistent with the hypothesis of dictionary and index initialization. I'm not hiding that result behind an average.
-
-In another series of real conversations, I checked seven LLM calls, including answers after a tool ran. **All of them used the cache**, reusing about **97-99.6% of the input tokens**. Prefill took **151-294 ms**. So there was no return to recomputing the entire home description.
-
-The remaining cost is easy to see in two runs:
-
-| Run | First LLM call | Answer after the tool result | What actually happened |
-| --- | ---: | ---: | --- |
-| A question about context instead of opening the curtains | 2.33 s | 1.25 s | The model read the state and said the curtain was closed |
-| A control attempt with a mismatched name | 2.89 s | 0.002 s, router answer | HA rejected the device name, the gateway returned a short error acknowledgment |
-
-The model generated about **14-15 tokens per second**. Writing the tool arguments alone took about two or three seconds, even with a cache hit. In the first run there was also a second LLM round. A short user question does not mean a short model output when the model has to write the function name and arguments in JSON.
-
-*The description and charts below present the original measurements from 15 November 2026. The results without the cache remain the reference point for this update.*
 
 ## 1. From benchmark to assistant
 
@@ -179,13 +128,13 @@ I chose the community [Local OpenAI LLM](https://github.com/skye-harris/hass_loc
 
 The integration is a thin layer: it passes HA's tool schemas as `tools` and tool results as `role: tool` in the next iteration (loop up to 10 iterations). HA still performs control - neither the gateway nor the integration touches devices itself.
 
-The gateway serializes requests and handles streaming differences. In the original deployment it had a workaround for the empty response on an identical repeated question. After the update described in the Edit above, it keeps the KV cache by default.
+The gateway serializes requests and handles streaming differences. In the original deployment it had a workaround for the empty response on an identical repeated question. After the [17 November update](#update), it keeps the KV cache by default.
 
 ![Home Assistant assistant configuration - STT, agent, and TTS assigned.](/images/arduino-local-agent/ha-assistant-config.jpg)
 
 ![Local OpenAI agent settings - tools and exposure scope.](/images/arduino-local-agent/ha-agent-settings.jpg)
 
-The current STT unit and boot guard already point to Turbo. They guard the order and make sure not to load several STT variants on the NPU at once, and do no automatic CPU fallback. TTS has an `unless-stopped` auto-start policy. **In the original description from 15 November I did not yet have a full reboot test after the Turbo and Rust changes.** The update described in the Edit above went through a cold start of Qwen 0.11.0 and a later start of Whisper. A full restart of the whole voice path after the later TTS changes remains a separate check.
+The current STT unit and boot guard already point to Turbo. They guard the order and make sure not to load several STT variants on the NPU at once, and do no automatic CPU fallback. TTS has an `unless-stopped` auto-start policy. **In the original description from 15 November I did not yet have a full reboot test after the Turbo and Rust changes.** The [update at the end of the article](#update) went through a cold start of Qwen 0.11.0 and a later start of Whisper. A full restart of the whole voice path after the later TTS changes remains a separate check.
 
 ![Example of a real conversation (anonymized).](/images/arduino-local-agent/ha-conversation.jpg)
 
@@ -230,7 +179,61 @@ The project's biggest problem is obvious: **3B is too small for complex thinking
 
 - **Too small for deeper reasoning.** Qwen2.5-3B copies sentences well and picks tools in an unambiguous context, but it is not a model for multi-step planning, combining facts from several tools, or explaining dependencies. The harder the command, the higher the risk of invented arguments.
 - **Too slow on the full context.** The full prefill with the entity description and tools is about **20 s**. In a voice conversation that's too long. Hence the "less context + router" direction.
-- **The cost of the first prefill.** In the original deployment the shared prefix was recomputed from scratch on every request. The update to 0.11.0 described in the Edit above made KV reuse possible. The first input and a change in the early part of the context still require the relevant tokens to be recomputed.
+- **The cost of the first prefill.** In the original deployment the shared prefix was recomputed from scratch on every request. The [update to 0.11.0](#update) made KV reuse possible. The first input and a change in the early part of the context still require the relevant tokens to be recomputed.
 - **Sharing one NPU.** Whisper (STT) and Qwen (LLM) must share the same Hexagon accelerator. Loading several models at once is sometimes unstable, and under memory pressure the 4B GGUF variant didn't load at all (FastRPC ENOMEM).
 
 The real-conversation logs already show the STT and intent-handling times, as well as a single large latency spike before STT ended. The next step is to explain that case and measure the start of playback on the speaker. I want to check both paths - local commands and the agent conversation - to assess the time actually felt by the user.
+
+## <span id="update"></span>Update 17 November 2026 - Qwen finally uses the KV cache
+
+*This section describes the state after the 17 November 2026 update. The description and charts in the article above present the original measurements from 15 November 2026 and remain the reference point.*
+
+The biggest speedup came after upgrading **GenieX from 0.9.3 to 0.11.0** and changing the gateway. The model is still the same: Qwen2.5-3B-Instruct Q4_0 on the NPU. What changed is how much work it has to do on the next question.
+
+### What is stored in the cache
+
+Before generating an answer, the LLM processes the entire input. This stage, prefill, covers the instructions, the home description, the tools, and the conversation history. The KV cache stores the attention computation results for tokens already processed. If the next request has the same beginning, that prefix can be reused and only the later part has to be recomputed.
+
+This is not a dictionary of ready-made answers. The new question and the tool result are still processed, and the model generates a new answer. A change to earlier data shortens the matching prefix. Device states have to stay current.
+
+In 0.9.3 the server would reset the session when the question changed. On top of that, my gateway sent a short internal reset before every request, because an identical repeated prompt could end in an empty response. That workaround helped preserve correctness, but it took away the benefit of the cache. 0.11.0 includes a [fix for prefix reuse](https://github.com/qualcomm/GenieX/pull/1624) and [reporting of cache token usage](https://github.com/qualcomm/GenieX/pull/1632).
+
+In the new gateway, the default policy is **`CACHE_POLICY=reuse`**, with no internal reset before each request. The `reset` mode remains for the older runtime and for comparisons.
+
+### Results for a fixed prefix
+
+In the test with a synthetic context 3164 tokens long, I sent a new question, an identical repeat of it, and a changed question. The model was already loaded. Every answer was verified.
+
+| Request | Cached tokens | Recomputed tokens | Prefill | Whole request |
+| --- | ---: | ---: | ---: | ---: |
+| New prefix | 3 | 3161 | 6.823 s | 7.035 s |
+| Identical repeat | 3163 | 1 | 0.064 s | 0.185 s |
+| Changed question | 3156 | 8 | 0.153 s | 0.294 s |
+
+For the changed question, the whole request was about **24 times faster**. The counter matters more than the time itself: instead of processing more than three thousand tokens again, the backend processed eight. An empty answer would not count as a success in this test.
+
+### What the HA conversations showed
+
+The cache also works with the real HA context and 15 tools. Below are individual observations from the gateway metrics, without STT, TTS, and playback:
+
+| Request | Input / cached tokens | Prefill | Generation | Whole request |
+| --- | ---: | ---: | ---: | ---: |
+| First text answer | 3346 / 3 | 7.308 s | 1.847 s | 9.304 s |
+| Next text answer | 3340 / 3323 | 0.155 s | 3.447 s | 3.725 s |
+| LLM tool call | 3347 / 3322 | 0.161 s | 3.637 s | 3.862 s |
+
+These are different utterances with different output lengths: 27, 51, and 53 tokens respectively. I don't treat them as a comparison of identical tasks. They do show, however, that the long home context is no longer recomputed from scratch on every question. The first fragment of the next text answer reached the gateway after about **261 ms**, versus 7.44 s for the first request.
+
+Tool calls in JSON and SSE also went through, as did the continuation after a simulated tool result. With the router warmed up, the decision for a real command took **0.895 ms**, and the whole gateway handling took **2.565 ms**. The first use of the router, however, cost 4.28 s, consistent with the hypothesis of dictionary and index initialization. I'm not hiding that result behind an average.
+
+In another series of real conversations, I checked seven LLM calls, including answers after a tool ran. **All of them used the cache**, reusing about **97-99.6% of the input tokens**. Prefill took **151-294 ms**. So there was no return to recomputing the entire home description.
+
+The remaining cost is easy to see in two runs:
+
+| Run | First LLM call | Answer after the tool result | What actually happened |
+| --- | ---: | ---: | --- |
+| A question about context instead of opening the curtains | 2.33 s | 1.25 s | The model read the state and said the curtain was closed |
+| A control attempt with a mismatched name | 2.89 s | 0.002 s, router answer | HA rejected the device name, the gateway returned a short error acknowledgment |
+
+The model generated about **14-15 tokens per second**. Writing the tool arguments alone took about two or three seconds, even with a cache hit. In the first run there was also a second LLM round. A short user question does not mean a short model output when the model has to write the function name and arguments in JSON.
+

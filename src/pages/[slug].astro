@@ -26,7 +26,8 @@ const { next, previous } = articleNeighbors(entry, posts);
 const structuredData = isPost ? {
   '@context': 'https://schema.org', '@type': 'BlogPosting', headline: entry.data.title,
   inLanguage: lang,
-  datePublished: entry.data.date, author: { '@type': 'Person', name: 'Paweł Kowalski', url: new URL(href('/about-us/'), Astro.site).href },
+  datePublished: entry.data.date, ...(entry.data.updated ? { dateModified: entry.data.updated } : {}),
+  author: { '@type': 'Person', name: 'Paweł Kowalski', url: new URL(href('/about-us/'), Astro.site).href },
   url: new URL(Astro.url.pathname, Astro.site).href,
   ...(entry.data.image ? { image: new URL(href(entry.data.image), Astro.site).href } : {}),
 } : null;
@@ -46,6 +47,13 @@ const structuredData = isPost ? {
       {entry.data.draft && <p class="draft-label mono" lang="en">Draft — local preview</p>}
       {entry.data.tags.length > 0 && <ul class="tag-list mono" aria-label={pl ? 'Tagi' : 'Tags'}>{entry.data.tags.map((tag) => <li lang="en">{tag}</li>)}</ul>}
     </header>
+    {entry.data.updated && entry.data.updateSummary && (
+      <aside class="article-update" aria-labelledby="article-update-label">
+        <p class="article-update-label mono" id="article-update-label">{pl ? 'Aktualizacja' : 'Update'} · <time datetime={entry.data.updated}>{dateLabel(entry.data.updated, lang)}</time></p>
+        <p class="article-update-summary">{entry.data.updateSummary}</p>
+        <p class="article-update-link"><a href={`#${pl ? 'aktualizacja' : 'update'}`}>{pl ? 'Szczegóły i pomiary na końcu artykułu' : 'Details and measurements at the end of the article'} <span aria-hidden="true">↓</span></a></p>
+      </aside>
+    )}
     <div class="prose" data-article-body data-wordpress-id={entry.data.wordpressId}>
       {isLegacy ? <Fragment set:html={html} /> : Content && <Content />}
     </div>

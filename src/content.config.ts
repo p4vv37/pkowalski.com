@@ -6,6 +6,8 @@ const schema = z.object({
   title: z.string(),
   slug: z.string(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  updated: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  updateSummary: z.string().optional(),
   description: z.string().default(''),
   image: z.string().optional(),
   categories: z.array(z.string()).default([]),
