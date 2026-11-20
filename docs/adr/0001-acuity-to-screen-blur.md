@@ -19,8 +19,9 @@ to be science.
   does) because it matches the cutoff within the spread of the underlying
   studies while staying a readable real-time shader.
 - **Defocus → blur.** Defocus of ΔD diopters through a pupil of diameter p gives
-  a blur-circle angle θ = p·ΔD; with the same e⁻² convention σ = 180·θ/π²
-  degrees. Neural and optical blur compose by adding variances (σ² = σ₁² + σ₂²).
+  a blur-circle angle θ = p·ΔD in radians. We substitute a Gaussian with
+  equal per-axis variance, σ = θ/4 in the same angular units. See ADR 0002
+  for the limits of combining this with behavioral acuity.
 - **Degrees → pixels.** Visual angle belongs to the *viewer's* screen, not the
   camera FOV. σ [px] = σ [deg] × px-per-degree, computed from the viewing
   distance (device default ≈35 cm touch / ≈55 cm desktop, user-adjustable

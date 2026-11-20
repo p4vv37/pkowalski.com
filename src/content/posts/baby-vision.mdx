@@ -1,38 +1,33 @@
 ---
-title: "Fun Project: Baby Vision Simulator"
+title: "Fun project: Baby vision simulator"
 slug: "baby-vision"
 date: "2026-11-20"
-description: "A browser simulator of what my newborn daughter sees, week by week — research-grounded blur, contrast, and color, live from your camera."
-image: "/images/baby-vision/mona-lisa.jpg"
+description: "Try a small WebGL experiment about how detail, contrast, and color develop in the first year of life."
+image: "/images/baby-vision/demo.jpg"
 lang: "en"
 tags: ["Vision Science", "WebGL", "Fun Project"]
 draft: false
 ---
 
-import BabyVisionSimulator from '../../components/BabyVisionSimulator.astro';
-import { SOURCES } from '../../lib/baby-vision/sources';
+import BabyVisionSimulator from '../../components/BabyVisionSimulator.astro'
+import { SOURCES } from '../../lib/baby-vision/sources'
 
-I was curious how my newborn daughter, Klara, experiences the world. So I vibe-coded this simulator: point your camera at anything — or use the Mona Lisa — and drag through her first year.
+I was curious how my newborn daughter, Klara, experiences the world. So I vibe-coded this simulator. Try the demo image or turn on your camera, then move the age slider to see what changes. In birth date mode, the default is Klara's birthday.
 
 <BabyVisionSimulator />
 
-At birth, Klara resolves about 0.8 cycles per degree — roughly 20/770 — and needs about 150× more contrast than an adult to see anything at all ([Brown 2018](https://europepmc.org/articles/PMC6016435)). Her world is nearly grayscale, with one exception worth knowing: saturated red is the one color a majority of newborns can reliably pick out ([Adams 1994](https://doi.org/10.1016/0042-6989(94)90127-9)). By three months she should be fully trichromatic ([Skelton 2022](https://doi.org/10.1111/cdep.12447)), and by her first birthday her acuity will still be a long way from adult — that takes years — but the steepest part of the curve will be behind her ([Neijzen 2025](https://europepmc.org/articles/PMC12069961)).
+## What this shows
 
-This is an approximation, not an oracle. Grating acuity is not letter acuity; a real baby also scans with eye movements, strongly prefers faces, and starts with a visual field only about 30° wide. Two judgment calls had to be made — how a contrast *threshold* turns into a rendered image, and how cycles per degree become pixels on *your* screen (that is what the viewing-distance setting is about) — and both are written down as decision records in `docs/adr/` in the [repo](https://github.com/p4vv37/pkowalski.com), next to the anchor tables. Every number in the model cites its study below, and a unit test fails if one doesn't. The camera feed never leaves your device.
+I used looking tests to estimate how much detail infants can resolve. The slider interpolates between published age points. The studies did not measure vision for every week. Newborns can distinguish some colors under test conditions, so the first setting is not black and white.
 
-Fun fact: if you feed a self-supervised vision model the same curriculum Klara is running — blurry before sharp, gray before color — it grows up *more* robust than one trained on adult-quality images from the start ([Cai 2026](https://arxiv.org/abs/2511.14440)). Her visual diet is the original one.
+The blur, contrast, and color filters are my interpretation of those results, not a recording of what Klara sees. The experimental focus filter uses estimated relative depth and assumes scene distances. It does not measure them. Camera frames are processed on your device. The demo image was generated with Gemini.
 
-The demo image is Leonardo's *Mona Lisa* (public domain; scan via Wikimedia Commons).
-
-## Sources
-
-Every parameter in the simulator traces to one of these:
-
-<ul class="bvs-sourceList">
-  {Object.values(SOURCES).map((source) => (
-    <li key={source.id}>
-      <a href={source.url}>{source.citation}</a>
-      <span> — {source.usedFor}</span>
-    </li>
-  ))}
-</ul>
+<details>
+  <summary>Sources</summary>
+  <ul>
+    {['brown2018', 'neijzen2025', 'norcia1990', 'adams1994', 'varner1985', 'skelton2022', 'mimo2025', 'haynes1965', 'green1980', 'banks1980', 'braddick1979', 'isenberg1989', 'macLachlan2002', 'tinyeyes'].map((id) => {
+      const source = SOURCES[id]
+      return <li><a href={source.url}>{source.citation.replaceAll('\u2014', '-').replaceAll('\u003B', ', ')}</a></li>
+    })}
+  </ul>
+</details>

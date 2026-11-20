@@ -53,28 +53,26 @@ export const ACUITY_ANCHORS: Anchor[] = [
 /**
  * Michelson contrast threshold (fraction) at low spatial frequencies.
  * Week 0: newborn median (Brown 2018). Weeks 2.5–9: sweep-VEP development
- * (Norcia 1990). Week 13: adult low-SF reference (Norcia 1990) — after this
- * the remaining contrast immaturity is confined to high spatial frequencies,
- * which the acuity blur already models.
+ * (Norcia 1990). Held at the reported low-frequency asymptote thereafter.
+ * This illustrative curve bridges different test methods, not equivalent measurements.
  */
 export const CONTRAST_ANCHORS: Anchor[] = [
   { weeks: 0, value: 0.46, sourceId: 'brown2018', note: 'newborn median, 0.083 c/deg' },
   { weeks: 2.5, value: 0.07, sourceId: 'norcia1990', note: 'low SF, 2–3 weeks' },
   { weeks: 9, value: 0.005, sourceId: 'norcia1990', note: 'low-SF asymptote' },
-  { weeks: 13, value: 0.003, sourceId: 'norcia1990', note: 'adult low-SF reference' },
 ];
 
 /**
  * Red–green (L−M) opponent channel gain, 0..1.
  * Design mapping (documented in the ADR): newborns discriminate saturated
  * red reliably (74%) but little else (Adams 1994); the L−M mechanism
- * matures first and is essentially adult-like by ~2 months (Varner 1985,
+ * develops first (Varner 1985,
  * Skelton 2022). 1.0 means "no attenuation".
  */
 export const RED_GREEN_GAIN_ANCHORS: Anchor[] = [
   { weeks: 0, value: 0.15, sourceId: 'adams1994', note: 'saturated reds faintly visible' },
   { weeks: 4, value: 0.4, sourceId: 'adams1994', note: 'red clearly discriminated at 1 month' },
-  { weeks: 8, value: 1.0, sourceId: 'varner1985', note: 'R–G mechanism mature' },
+  { weeks: 8, value: 1.0, sourceId: 'varner1985', note: 'illustrative end of the earlier channel ramp' },
 ];
 
 /**
@@ -108,8 +106,7 @@ export const ADULT_CONTRAST_THRESHOLD = 0.003;
  * Rendering interpretation (see ADR): suprathreshold attenuation is a
  * compressive function of the infant:adult threshold ratio. A linear map
  * would render week 0 as featureless fog (0.65% residual contrast); the
- * exponent 0.5 keeps strong edges visible at ~8%, consistent with
- * suprathreshold contrast constancy.
+ * exponent 0.5 is an illustrative choice, not a measured appearance curve.
  */
 export const CONTRAST_GAIN_EXPONENT = 0.5;
 
@@ -206,4 +203,57 @@ export function weeksSince(birth: string | Date, now: Date = new Date()): number
 export function weeksAndDays(weeks: number): { weeks: number; days: number } {
   const totalDays = Math.round(weeks * 7);
   return { weeks: Math.floor(totalDays / 7), days: totalDays % 7 };
+}
+
+// ---------------------------------------------------------------------------
+// Accommodation and pupil: the optics of the depth-of-focus (DOF) effect.
+//
+// The newborn eye is stuck focusing at one plane (~19 cm, ≈5.3 D — Haynes,
+// White & Held 1965); everything nearer or farther is defocused by a
+// computable number of diopters. Flexible accommodation develops over the
+// first months (slopes from Banks 1980, via Green et al. 1980) and is
+// consistent at all distances by 6–8 months (Braddick et al. 1979).
+//
+// Note: the +2 D of typical newborn hyperopia is already embedded in the
+// measured fixed-focus plane — we must NOT add it on top (double-counting).
+// ---------------------------------------------------------------------------
+
+/** Newborn fixed-focus plane (Haynes, White & Held 1965): median 19 cm. */
+export const NEWBORN_FOCUS_DIOPTERS = 5.3;
+
+/**
+ * Accommodation response gain: 0 = fixed newborn focus, 1 = tracks the
+ * target. Anchored on Banks' measured response slopes.
+ */
+export const ACCOMMODATION_GAIN_ANCHORS: Anchor[] = [
+  { weeks: 0, value: 0.0, sourceId: 'haynes1965', note: 'fixed focus ~19 cm at all distances' },
+  { weeks: mo(1), value: 0.46, sourceId: 'banks1980', note: 'slope 0.41–0.51' },
+  { weeks: mo(2), value: 0.77, sourceId: 'banks1980', note: 'slope 0.75–0.79' },
+  { weeks: mo(3), value: 0.81, sourceId: 'banks1980', note: 'slope 0.78–0.83' },
+  { weeks: 26, value: 1.0, sourceId: 'braddick1979', note: 'unity gain is a rendering simplification, informed by improved focus at tested distances' },
+];
+
+/** Pupil diameter (mm) by age — sets the defocus blur-circle size. */
+export const PUPIL_ANCHORS: Anchor[] = [
+  { weeks: 0, value: 3.7, sourceId: 'isenberg1989', note: '3.6–3.8 mm newborn' },
+  { weeks: mo(1), value: 4.2, sourceId: 'banks1980', note: 'at 8 cd/m²' },
+  { weeks: mo(3), value: 4.6, sourceId: 'banks1980' },
+  { weeks: 26, value: 5.5, sourceId: 'macLachlan2002' },
+];
+
+/**
+ * The infant's effective focus in diopters when fixating a target at
+ * `targetCm`: blends the newborn's fixed 5.3 D toward the target demand
+ * with the age's accommodation gain (linear in diopters, which is the
+ * space Banks' slopes were measured in).
+ */
+export function effectiveFocusDiopters(weeks: number, targetCm: number): number {
+  const gain = interpolate(ACCOMMODATION_GAIN_ANCHORS, weeks, 'linear').value;
+  const targetDiopters = 100 / targetCm;
+  return NEWBORN_FOCUS_DIOPTERS + gain * (targetDiopters - NEWBORN_FOCUS_DIOPTERS);
+}
+
+/** Pupil diameter (mm) at a given age. */
+export function pupilMm(weeks: number): number {
+  return interpolate(PUPIL_ANCHORS, weeks, 'linear').value;
 }

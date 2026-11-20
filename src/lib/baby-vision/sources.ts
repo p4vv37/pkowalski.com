@@ -78,7 +78,7 @@ export const SOURCES: Record<string, Source> = {
     citation:
       'López FM, Lenz M, Fedozzi MG, Aubret A, Triesch J. "MIMo Grows! Simulating Body and Sensory Development in a Multimodal Infant Model." 2025 IEEE International Conference on Development and Learning (ICDL). arXiv:2509.09805.',
     url: 'https://arxiv.org/abs/2509.09805',
-    usedFor: 'Method precedent: age-dependent acuity used as a contrast-sensitivity low-pass filter; our Gaussian approximation of the acuity cutoff follows the same age→acuity table (their published code, which credits Mayer 1995, agrees with our meta-analysis anchors).',
+    usedFor: 'Method precedent: age-dependent acuity used as a contrast-sensitivity low-pass filter; the Gaussian approximation and age anchors here are independent.',
   },
   cai2026: {
     id: 'cai2026',
@@ -114,5 +114,54 @@ export const SOURCES: Record<string, Source> = {
       'Dineen AT, et al. "The development of coarse and fine feature tuning in infant visual cortex." bioRxiv 2026.10.14.758935 (2026).',
     url: 'https://www.biorxiv.org/content/10.64898/2026.10.14.758935',
     usedFor: 'Context only: cortex beyond V1 keeps privileging coarse features through 9 months — supports keeping a residual fine-detail penalty after acuity alone would predict sharp vision.',
+  },
+  haynes1965: {
+    id: 'haynes1965',
+    citation:
+      'Haynes H, White BL, Held R. "Visual accommodation in human infants." Science 1965;148(3669):528–530.',
+    url: 'https://doi.org/10.1126/science.148.3669.528',
+    usedFor: 'Newborn focus: fixed plane at a median 19 cm (≈5.3 D) regardless of target distance — the anchor of the depth-of-focus model.',
+  },
+  green1980: {
+    id: 'green1980',
+    citation:
+      'Green DG, Powers MK, Banks MS. "Depth of focus, eye size and visual acuity." Vision Res 1980;20:827–835.',
+    url: 'https://doi.org/10.1016/0042-6989(80)90063-2',
+    usedFor: 'Blur-circle optics: angular blur ≈ 3.44 × defocus (D) × pupil (mm); also reports Banks\' accommodation slopes by age.',
+  },
+  banks1980: {
+    id: 'banks1980',
+    citation:
+      'Banks MS. "The development of visual accommodation during early infancy." Child Dev 1980;51(3):646–666.',
+    url: 'https://doi.org/10.2307/1129450',
+    usedFor: 'Accommodation response slopes (0.41–0.51 at 1 month, 0.75–0.83 by 3 months) and pupil diameters at 1–3 months.',
+  },
+  braddick1979: {
+    id: 'braddick1979',
+    citation:
+      'Braddick O, Atkinson J, French J, Howland HC. "A photorefractive study of infant accommodation." Vision Res 1979;19:1319–1330.',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/9205713/',
+    usedFor: 'Consistent focus at the tested 1.5 m distance by 6–8 months (findings as tabulated in Currie & Manny 1997).',
+  },
+  hainline1992: {
+    id: 'hainline1992',
+    citation:
+      'Hainline L, Riddell P, Grose-Fifer J, Abramov I. "Development of accommodation and convergence in infancy." Behav Brain Res 1992;49(1):33–50.',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/1388799/',
+    usedFor: 'Young infants typically fixate at around 30 cm — the assumed subject distance for depth-of-focus rendering.',
+  },
+  isenberg1989: {
+    id: 'isenberg1989',
+    citation:
+      'Isenberg SJ, Dang Y, Jotterand V. "The pupils of term and preterm infants." Am J Ophthalmol 1989;108(1):75–79.',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/2750838/',
+    usedFor: 'Newborn pupil diameter (3.6–3.8 mm).',
+  },
+  macLachlan2002: {
+    id: 'macLachlan2002',
+    citation:
+      'MacLachlan C, Howland HC. "Normal values and standard deviations for pupil diameter and interpupillary distance in subjects aged 1 month to 19 years." Ophthalmic Physiol Opt 2002;22(3):175–182.',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/12090630/',
+    usedFor: 'Pupil diameter norms across infancy (6-month anchor).',
   },
 };

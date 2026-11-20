@@ -1,0 +1,5 @@
+# Use relative depth only for an experimental focus preview
+
+A single RGB frame does not measure scene distances or show where an infant is looking. Depth Anything V2 Small supplies relative inverse depth. We map its 80th and 10th percentiles to assumed distances of 30 cm and 300 cm respectively, not to a detected face or measured geometry. The camera model is loaded only on request. The Gemini demo uses a precomputed map from the same model family.
+
+The focus response blends a fixed near plane (Haynes et al.) toward the assumed target using age-dependent slopes from Banks. That blend and the final unity response are illustrative simplifications, not measured focus distances or evidence of perfect accommodation. Green et al. Eq. 8 grounds the geometric blur-circle diameter. The shader approximates the disk with a Gaussian of equal per-axis variance and adds its variance to the behavioral-acuity filter. Because behavioral acuity already includes optical effects, this combination can overstate blur. The two-pass spatially varying kernel can also mix across depth edges. Neither effect should be used for clinical interpretation.

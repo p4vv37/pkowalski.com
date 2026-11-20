@@ -13,9 +13,10 @@
 
 <section class="bvs" id="baby-vision-simulator">
   <div class="bvs-stage">
+    <img class="bvs-canvas" data-bvs-static src="/images/baby-vision/demo.jpg" alt="Unfiltered demo image" hidden>
     <canvas class="bvs-canvas" aria-label="Camera or demo image, filtered to approximate infant vision at the selected age"></canvas>
     <p class="bvs-message" data-bvs-message hidden></p>
-    <button class="bvs-compare" type="button" data-bvs-compare disabled>Hold to compare — adult vision</button>
+    <button class="bvs-compare" type="button" data-bvs-compare disabled>Hold to compare with original</button>
   </div>
 
   <div class="bvs-panel">
@@ -26,7 +27,7 @@
 
     <div class="bvs-controls" data-bvs-controls="age" hidden>
       <div class="bvs-sliderRow">
-        <input id="bvs-weeks" type="range" min="0" max="52" step="0.25" value="1" data-bvs-weeks>
+        <input id="bvs-weeks" type="range" min="0" max="52" step="0.25" value="1" aria-label="Age in weeks after birth" data-bvs-weeks>
         <output class="bvs-ageOut mono" for="bvs-weeks" data-bvs-age-out></output>
       </div>
       <div class="bvs-ticks mono" aria-hidden="true">
@@ -48,12 +49,13 @@
       <button class="bvs-action" type="button" data-bvs-source="image">Demo image</button>
       <button class="bvs-action" type="button" data-bvs-source="camera">Use camera</button>
       <button class="bvs-action" type="button" data-bvs-flip hidden>Flip camera</button>
+      <button class="bvs-action" type="button" data-bvs-depth aria-pressed="false" title="Experimental. Relative depth uses assumed distances. Camera mode downloads a model on request.">Depth-aware focus</button>
     </div>
 
     <details class="bvs-advanced">
-      <summary>Advanced — viewing distance</summary>
+      <summary>Viewing distance</summary>
       <div class="bvs-sliderRow">
-        <input id="bvs-distance" type="range" min="25" max="100" step="1" value="55" data-bvs-distance>
+        <input id="bvs-distance" type="range" min="25" max="100" step="1" value="55" aria-label="Viewing distance in centimeters" data-bvs-distance>
         <output class="mono" for="bvs-distance" data-bvs-distance-out></output>
       </div>
       <p class="bvs-hint">
@@ -67,8 +69,8 @@
 </section>
 
 <script>
-  import { visionParamsAtWeeks, weeksSince, weeksAndDays, MAX_WEEKS } from '../lib/baby-vision/model';
-  import { pxPerDegree, neuralSigmaPx } from '../lib/baby-vision/render';
+  import { visionParamsAtWeeks, weeksSince, weeksAndDays, MAX_WEEKS, effectiveFocusDiopters, pupilMm } from '../lib/baby-vision/model';
+  import { pxPerDegree, neuralSigmaPx, defocusSigmaPx, diopterScale } from '../lib/baby-vision/render';
   import blurFrag from '../lib/baby-vision/shaders/blur.frag?raw';
   import combineFrag from '../lib/baby-vision/shaders/combine.frag?raw';
   import fullscreenVert from '../lib/baby-vision/shaders/fullscreen.vert?raw';
@@ -76,7 +78,12 @@
   // Klara. Stored in localStorage once the visitor picks their own date.
   const DEFAULT_BIRTHDATE = '2026-11-12';
   const STORAGE_KEY = 'baby-vision-birthdate';
-  const ADULT_CONTRAST_THRESHOLD = 0.003; // Norcia 1990, low-SF adult reference
+
+  // Depth-of-focus scene assumptions (ADR 0002): the infant fixates the
+  // subject at 30 cm — an illustrative distance — and the far end of the depth range is assumed
+  // at 3 m. Both are rendering assumptions, labeled as such in the UI.
+  const SUBJECT_CM = 30;
+  const FAR_CM = 300;
 
   function required<T extends Element>(el: T | null, what: string): T {
     if (!el) throw new Error(`BabyVisionSimulator: missing ${what}`);
@@ -107,6 +114,12 @@
     saturation: number;
     compare: boolean;
     meanLuma: number;
+    // Depth-of-focus inputs (ADR 0002); absent → neural blur only.
+    hasDepth?: boolean;
+    focusDepth?: number;
+    focusOffset?: number;
+    diopterScale?: number;
+    defocusPxPerDiopter?: number;
   }
 
   function createRenderer() {
@@ -152,6 +165,7 @@
       dir: gl.getUniformLocation(blurProg, 'u_dir'),
       neuralSigma: gl.getUniformLocation(blurProg, 'u_neuralSigma'),
       focusDepth: gl.getUniformLocation(blurProg, 'u_focusDepth'),
+      focusOffset: gl.getUniformLocation(blurProg, 'u_focusOffset'),
       diopterScale: gl.getUniformLocation(blurProg, 'u_diopterScale'),
       defocusPxPerDiopter: gl.getUniformLocation(blurProg, 'u_defocusPxPerDiopter'),
     };
@@ -170,6 +184,23 @@
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    // Optional depth map (relative inverse depth, 1 = near; ADR 0002).
+    let depthTex: WebGLTexture | null = null;
+
+    function uploadDepth(source: TexImageSource) {
+      if (!depthTex) {
+        depthTex = demand(gl.createTexture(), 'depth texture');
+        gl.bindTexture(gl.TEXTURE_2D, depthTex);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      }
+      gl.bindTexture(gl.TEXTURE_2D, depthTex);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+    }
 
     let texA: WebGLTexture | null = null;
     let texB: WebGLTexture | null = null;
@@ -207,7 +238,10 @@
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
-    function uploadSource(source: TexImageSource) {
+    let sourceWidth = 1, sourceHeight = 1;
+    function uploadSource(source: HTMLVideoElement | HTMLImageElement) {
+      sourceWidth = source instanceof HTMLVideoElement ? source.videoWidth : source.naturalWidth;
+      sourceHeight = source instanceof HTMLVideoElement ? source.videoHeight : source.naturalHeight;
       gl.bindTexture(gl.TEXTURE_2D, srcTex);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
@@ -218,7 +252,7 @@
     // The mip chain averages gamma-encoded bytes — close enough for a mean,
     // and it avoids a reduction pass (noted in ADR 0001).
     function computeMeanLuma(): number {
-      const level = Math.ceil(Math.log2(Math.max(width, height)));
+      const level = Math.floor(Math.log2(Math.max(sourceWidth, sourceHeight)));
       gl.bindFramebuffer(gl.FRAMEBUFFER, meanFbo);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, srcTex, level);
       const px = new Uint8Array(4);
@@ -238,13 +272,22 @@
       const rg = inputs.compare ? 1 : inputs.rgGain;
       const by = inputs.compare ? 1 : inputs.byGain;
       const sat = inputs.compare ? 1 : inputs.saturation;
+      const useDepth = !inputs.compare && (inputs.hasDepth ?? false) && !!depthTex;
 
       gl.viewport(0, 0, width, height);
       gl.useProgram(blurProg);
       gl.uniform1i(blurU.image, 0);
       gl.uniform1i(blurU.depth, 1);
-      gl.uniform1i(blurU.hasDepth, 0); // depth-of-focus arrives with ADR 0002
-      gl.uniform1i(blurU.linearInput, 0);
+      gl.uniform1i(blurU.hasDepth, useDepth ? 1 : 0);
+      gl.uniform1f(blurU.focusDepth, inputs.focusDepth ?? 0);
+      gl.uniform1f(blurU.focusOffset, inputs.focusOffset ?? 0);
+      gl.uniform1f(blurU.diopterScale, inputs.diopterScale ?? 0);
+      gl.uniform1f(blurU.defocusPxPerDiopter, inputs.defocusPxPerDiopter ?? 0);
+      if (useDepth) {
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, depthTex);
+      }
+      gl.uniform1i(blurU.linearInput, 0); // first pass reads sRGB
       gl.uniform2f(blurU.texel, 1 / width, 1 / height);
       gl.uniform2f(blurU.dir, 1, 0);
       gl.uniform1f(blurU.neuralSigma, sigma);
@@ -271,7 +314,7 @@
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
 
-    return { setSize, uploadSource, computeMeanLuma, render };
+    return { setSize, uploadSource, uploadDepth, computeMeanLuma, render };
   }
 
   // -----------------------------------------------------------------------
@@ -285,10 +328,14 @@
     birthdate: localStorage.getItem(STORAGE_KEY) ?? DEFAULT_BIRTHDATE,
     source: 'image' as SourceKind,
     compare: false,
+    depthEnabled: true,
     viewingDistanceCm: matchMedia('(pointer: coarse)').matches ? 35 : 55,
   };
 
-  const renderer = createRenderer();
+  const renderer = (() => {
+    try { return createRenderer(); }
+    catch (error) { console.error(error); return null; }
+  })();
   let stream: MediaStream | null = null;
   const video = document.createElement('video');
   video.muted = true;
@@ -309,61 +356,209 @@
     stopCamera();
     try {
       const img = new Image();
-      img.src = '/images/baby-vision/mona-lisa.jpg';
+      img.src = '/images/baby-vision/demo.jpg';
       await img.decode();
-      renderer?.setSize(img.naturalWidth, img.naturalHeight);
+      if (state.source !== 'image') return;
+      renderer?.setSize(Math.round(720 * img.naturalWidth / img.naturalHeight), 720);
       renderer?.uploadSource(img);
       meanLuma = renderer?.computeMeanLuma() ?? 0.2;
       compareBtn.disabled = false;
-      clearMessage();
       dirty = true;
     } catch {
       showMessage('Could not load the demo image.');
     }
   }
 
+  let cameraRequest = 0;
   async function useCamera() {
+    stopCamera();
+    cameraDepthReady = false;
+    const request = cameraRequest;
     if (!navigator.mediaDevices?.getUserMedia) {
-      showMessage('This browser/context does not expose a camera (HTTPS required). Showing the demo image instead.');
+      setSource('image');
+      showMessage('Camera unavailable. Use HTTPS or localhost.');
       return;
     }
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
+      const next = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: false,
       });
+      if (request !== cameraRequest) { next.getTracks().forEach((track) => track.stop()); return; }
+      stream = next;
       video.srcObject = stream;
       await video.play();
+      if (request !== cameraRequest) return;
       renderer?.setSize(video.videoWidth, video.videoHeight);
       compareBtn.disabled = false;
       clearMessage();
       dirty = true;
     } catch (err) {
+      if (request !== cameraRequest) return;
       const name = err instanceof DOMException ? err.name : '';
+      setSource('image');
       showMessage(
         name === 'NotAllowedError'
           ? 'Camera permission was declined — showing the demo image instead.'
           : 'No camera available — showing the demo image instead.',
       );
-      setSource('image');
     }
   }
 
+  window.addEventListener('pagehide', () => stopCamera());
+
   function stopCamera() {
+    cameraRequest++;
     stream?.getTracks().forEach((track) => track.stop());
     stream = null;
     video.srcObject = null;
   }
 
   function setSource(kind: SourceKind) {
+    clearMessage();
     state.source = kind;
     root.querySelectorAll<HTMLButtonElement>('[data-bvs-source]').forEach((btn) => {
       btn.classList.toggle('is-active', btn.dataset.bvsSource === kind);
     });
     const flip = $<HTMLButtonElement>('[data-bvs-flip]');
     flip.hidden = kind !== 'camera';
+    // Precomputed depth is free for the demo image; the camera model is
+    // opt-in (~26 MB download), so depth starts off there.
+    state.depthEnabled = kind === 'image';
+    cameraDepthReady = false;
+    updateDepthButton();
     if (kind === 'camera') void useCamera();
-    else void useImage();
+    else { void useImage(); void loadDemoDepth(); }
+  }
+
+  // -----------------------------------------------------------------------
+  // Depth of focus (ADR 0002)
+  //
+  // The demo image ships a precomputed Depth Anything map; the camera can
+  // run the same model in-browser (transformers.js, loaded on demand).
+  // Focus/pupil parameters come from the accommodation anchors in model.ts.
+  // -----------------------------------------------------------------------
+
+  let demoDepthStats: { dFocus: number; dFar: number } | null = null;
+  let cameraDepthReady = false;
+  let cameraDepthStats: { dFocus: number; dFar: number } | null = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let depthPipeline: any = null;
+  let depthBusy = false;
+  let lastDepthRun = 0;
+  const depthCanvas = document.createElement('canvas');
+
+  async function loadDemoDepth() {
+    const img = new Image();
+    img.src = '/images/baby-vision/demo-depth.png';
+    try {
+      await img.decode();
+      if (state.source !== 'image') return;
+      const sample = document.createElement('canvas');
+      sample.width = sample.height = 64;
+      const ctx = demand(sample.getContext('2d'), 'depth sampler');
+      ctx.drawImage(img, 0, 0, 64, 64);
+      const rgba = ctx.getImageData(0, 0, 64, 64).data;
+      const values = rgba.filter((_, i) => i % 4 === 0);
+      demoDepthStats = depthStatsFromValues(values, values.length);
+      renderer?.uploadDepth(img);
+      dirty = true;
+    } catch {
+      // No depth map shipped — depth-aware focus simply stays unavailable.
+    }
+  }
+
+  async function ensureDepthPipeline(): Promise<boolean> {
+    if (depthPipeline) return true;
+    showMessage('Loading the depth model (≈26 MB, runs locally)…');
+    try {
+      // @ts-expect-error — CDN module without type declarations
+      const { pipeline } = await import(/* @vite-ignore */ 'https://esm.sh/@huggingface/transformers@3');
+      depthPipeline = await pipeline('depth-estimation', 'onnx-community/depth-anything-v2-small', {
+        dtype: 'q8',
+      });
+      clearMessage();
+      return true;
+    } catch {
+      showMessage('Could not load the depth model — depth-aware focus stays off.');
+      return false;
+    }
+  }
+
+  // Focus anchors from a live map: the subject is the dominant near content
+  // (p80), the far end is the background (p10). Data-driven, so no per-scene
+  // magic numbers (ADR 0002).
+  function depthStatsFromValues(data: ArrayLike<number>, n: number): { dFocus: number; dFar: number } | null {
+    const stride = Math.max(1, Math.floor(n / 4096));
+    const values: number[] = [];
+    for (let i = 0; i < n; i += stride) values.push(data[i] / 255);
+    values.sort((a, b) => a - b);
+    const pct = (p: number) => values[Math.min(values.length - 1, Math.floor(p * values.length))];
+    return { dFocus: pct(0.8), dFar: pct(0.1) };
+  }
+
+  async function runCameraDepth() {
+    if (depthBusy || !depthPipeline || video.readyState < 2) return;
+    depthBusy = true;
+    try {
+      const capture = document.createElement('canvas');
+      capture.width = video.videoWidth;
+      capture.height = video.videoHeight;
+      demand(capture.getContext('2d'), 'camera snapshot').drawImage(video, 0, 0);
+      const currentStream = stream;
+      const out = await depthPipeline(capture.toDataURL('image/jpeg'));
+      if (state.source !== 'camera' || !state.depthEnabled || stream !== currentStream) return;
+      const depth = out.depth as { data: ArrayLike<number>; width: number; height: number };
+      const n = depth.width * depth.height;
+      depthCanvas.width = depth.width;
+      depthCanvas.height = depth.height;
+      const ctx = demand(depthCanvas.getContext('2d'), '2d context');
+      const image = ctx.createImageData(depth.width, depth.height);
+      for (let i = 0; i < n; i++) {
+        const v = depth.data[i];
+        image.data[4 * i] = v;
+        image.data[4 * i + 1] = v;
+        image.data[4 * i + 2] = v;
+        image.data[4 * i + 3] = 255;
+      }
+      ctx.putImageData(image, 0, 0);
+      const stats = depthStatsFromValues(depth.data, n);
+      // A flat map (subject ≈ background) carries no focus signal — skip.
+      if (stats && stats.dFocus - stats.dFar >= 0.05) {
+        renderer?.uploadDepth(depthCanvas);
+        cameraDepthStats = stats;
+        cameraDepthReady = true;
+        dirty = true;
+      } else {
+        cameraDepthReady = false;
+      }
+    } catch {
+      cameraDepthReady = false;
+    } finally {
+      depthBusy = false;
+    }
+  }
+
+  function currentDepthStats(): { dFocus: number; dFar: number } | null {
+    if (!state.depthEnabled) return null;
+    if (state.source === 'image') {
+      return demoDepthStats;
+    }
+    return cameraDepthReady ? cameraDepthStats : null;
+  }
+
+  function depthInputs(): Partial<RenderInputs> {
+    const stats = currentDepthStats();
+    if (!stats || stats.dFocus - stats.dFar < 0.05) return {};
+    const weeks = currentWeeks();
+    const focus = effectiveFocusDiopters(weeks, SUBJECT_CM);
+    return {
+      hasDepth: true,
+      focusDepth: stats.dFocus,
+      focusOffset: focus - 100 / SUBJECT_CM,
+      diopterScale: diopterScale(SUBJECT_CM, FAR_CM, stats.dFocus, stats.dFar),
+      defocusPxPerDiopter: defocusSigmaPx(1, pupilMm(weeks), canvasPxPerDegree()),
+    };
   }
 
   // -----------------------------------------------------------------------
@@ -371,9 +566,9 @@
   // -----------------------------------------------------------------------
 
   function describeColor(p: ReturnType<typeof visionParamsAtWeeks>): string {
-    if (p.blueYellowGain < 0.2 && p.redGreenGain < 0.4) return 'nearly grayscale — saturated reds barely visible';
-    if (p.blueYellowGain < 0.9) return 'reds and greens coming in; blues and yellows still mostly absent';
-    if (p.saturation < 1) return 'full hue range, mildly desaturated';
+    if (p.blueYellowGain < 0.2 && p.redGreenGain < 0.4) return 'Strongly muted color (illustrative)' ;
+    if (p.blueYellowGain < 0.9) return 'Earlier red-green than blue-yellow response (illustrative)' ;
+    if (p.saturation < 1) return 'Full hue range with reduced saturation (illustrative)' ;
     return 'near adult';
   }
 
@@ -389,11 +584,10 @@
   function updateReadout() {
     const weeks = state.mode === 'age' ? state.weeks : weeksSince(state.birthdate);
     const p = visionParamsAtWeeks(weeks);
-    const contrastTimes = Math.max(1, Math.round(p.contrastThreshold / ADULT_CONTRAST_THRESHOLD));
     const rows: Array<[string, string]> = [
       ['Age', `${ageLabel(p.weeks)} (week ${p.weeks.toFixed(1)} of ${MAX_WEEKS})`],
       ['Visual acuity', `≈ ${p.acuityCpd.toFixed(1)} cycles/degree (≈ 20/${Math.round(p.snellen)})`],
-      ['Contrast', p.contrastGain >= 1 ? 'adult-level at low spatial frequencies' : `needs ~${contrastTimes}× more contrast than an adult`],
+      ['Contrast', `Low-frequency model: ${+(100 * p.contrastThreshold).toPrecision(2)}% threshold (different study methods)`],
       ['Color', describeColor(p)],
     ];
     readout.innerHTML = rows
@@ -409,13 +603,16 @@
     return state.mode === 'age' ? state.weeks : weeksSince(state.birthdate);
   }
 
-  function neuralSigmaCanvasPx(): number {
+  function canvasPxPerDegree(): number {
     // σ in CSS pixels from visual angle, then scaled into texture pixels
     // (the canvas may render at a different resolution than its CSS size).
-    const p = visionParamsAtWeeks(currentWeeks());
-    const cssPx = neuralSigmaPx(p.acuityCpd, pxPerDegree(state.viewingDistanceCm));
     const scale = canvas.clientWidth > 0 ? canvas.width / canvas.clientWidth : 1;
-    return cssPx * scale;
+    return pxPerDegree(state.viewingDistanceCm) * scale;
+  }
+
+  function neuralSigmaCanvasPx(): number {
+    const p = visionParamsAtWeeks(currentWeeks());
+    return neuralSigmaPx(p.acuityCpd, canvasPxPerDegree());
   }
 
   function frame() {
@@ -423,6 +620,12 @@
       renderer?.uploadSource(video);
       meanLuma = renderer?.computeMeanLuma() ?? meanLuma;
       dirty = true;
+    }
+    if (state.source === 'camera' && state.depthEnabled && depthPipeline) {
+      if (performance.now() - lastDepthRun > 750) {
+        lastDepthRun = performance.now();
+        void runCameraDepth();
+      }
     }
     if (dirty) {
       const p = visionParamsAtWeeks(currentWeeks());
@@ -434,6 +637,7 @@
         saturation: p.saturation,
         compare: state.compare,
         meanLuma,
+        ...depthInputs(),
       });
       dirty = false;
     }
@@ -499,6 +703,30 @@
     void useCamera();
   });
 
+  const depthBtn = $<HTMLButtonElement>('[data-bvs-depth]');
+
+  function updateDepthButton() {
+    depthBtn.setAttribute('aria-pressed', state.depthEnabled ? 'true' : 'false');
+    depthBtn.classList.toggle('is-active', state.depthEnabled);
+  }
+
+  depthBtn.addEventListener('click', () => {
+    if (!state.depthEnabled && state.source === 'camera') {
+      // Opt-in: load the model first, then enable on success.
+      void ensureDepthPipeline().then((ok) => {
+        if (ok && state.source === 'camera') {
+          state.depthEnabled = true;
+          updateDepthButton();
+          dirty = true;
+        }
+      });
+      return;
+    }
+    state.depthEnabled = !state.depthEnabled;
+    updateDepthButton();
+    dirty = true;
+  });
+
   // Hold-to-compare: pointer and keyboard.
   const startCompare = () => {
     if (compareBtn.disabled) return;
@@ -526,6 +754,7 @@
     }
   });
   compareBtn.addEventListener('keyup', endCompare);
+  compareBtn.addEventListener('blur', endCompare);
 
   // Keep σ correct when the canvas is re-laid-out.
   new ResizeObserver(() => {
@@ -541,8 +770,14 @@
     showMessage('WebGL2 is not available in this browser, so the live preview is disabled — the numbers below still apply.');
   }
   setMode('birthdate');
-  setSource('image');
-  requestAnimationFrame(frame);
+  if (renderer) {
+    setSource('image');
+    requestAnimationFrame(frame);
+  } else {
+    canvas.hidden = true;
+    $<HTMLImageElement>('[data-bvs-static]').hidden = false;
+    root.querySelectorAll<HTMLButtonElement>('.bvs-action').forEach((button) => { button.disabled = true; });
+  }
 </script>
 
 <style>
@@ -629,6 +864,7 @@
     background: var(--accent);
     color: var(--bg);
   }
+  .bvs [hidden] { display: none; }
   .bvs-controls {
     display: grid;
     gap: 6px;
@@ -677,7 +913,7 @@
     gap: 6px;
     font-size: 0.85rem;
   }
-  .bvs-readoutRow {
+  .bvs :global(.bvs-readoutRow) {
     display: grid;
     grid-template-columns: 9.5em 1fr;
     gap: 12px;
@@ -685,10 +921,10 @@
     border: 1px solid var(--line);
     border-radius: 6px;
   }
-  .bvs-readoutRow dt {
+  .bvs :global(.bvs-readoutRow) dt {
     color: var(--subtle);
   }
-  .bvs-readoutRow dd {
+  .bvs :global(.bvs-readoutRow) dd {
     margin: 0;
     color: var(--text);
   }

@@ -19,8 +19,8 @@ precision highp float;
 //   2. Optical defocus. If the baby accommodates at distance F, an object
 //      at depth Z is defocused by ΔD = |100/F − 100/Z| diopters. Through a
 //      pupil of diameter p, the blur circle subtends θ = p·ΔD radians,
-//      whose MTF first zero is at 1/θ cycles/radian; with the same e⁻²
-//      convention σ = 180·θ/π² degrees. (Focus/pupil anchors: see ADR.)
+//      approximated by a Gaussian of σ = θ/4 in the same angular units
+//      (matching the per-axis variance of a uniform disk).
 //
 // The host (render.ts) supplies both as pixels of the *displayed* canvas —
 // visual angle belongs to the viewer's screen, not the camera's FOV —
@@ -59,7 +59,8 @@ uniform vec2  u_dir;         // (1,0): horizontal pass, (0,1): vertical pass
 
 // From model.ts + render.ts, converted to pixels of this canvas:
 uniform float u_neuralSigma;         // σ from acuity [px]
-uniform float u_focusDepth;          // normalized depth value at the focus plane
+uniform float u_focusDepth;          // normalized depth value of the target plane
+uniform float u_focusOffset;         // F(age) − 100/targetCm [D]; 0 once focus tracks
 uniform float u_diopterScale;        // diopters per unit of normalized depth
 uniform float u_defocusPxPerDiopter; // σ [px] per diopter of defocus
 
@@ -73,10 +74,11 @@ float sigmaAt(vec2 uv) {
   float s = u_neuralSigma;
   if (u_hasDepth) {
     // Relative depth maps are affine in inverse depth, and diopters are
-    // linear in inverse depth — so an affine map between them is the
-    // natural calibration (see ADR 0001 for the anchoring assumption).
+    // linear in inverse depth — so the map between them is affine once two
+    // anchors are fixed (see ADR 0002). The infant's effective focus F(age)
+    // enters as the constant offset u_focusOffset.
     float d = texture(u_depth, uv).r;
-    float diopters = abs(u_diopterScale * (d - u_focusDepth));
+    float diopters = abs(u_focusOffset - u_diopterScale * (d - u_focusDepth));
     float defocusSigma = u_defocusPxPerDiopter * diopters;
     s = sqrt(s * s + defocusSigma * defocusSigma);
   }
@@ -100,12 +102,13 @@ void main() {
   vec3 sum = vec3(0.0);
   float weightSum = 0.0;
 
+  float centerSigma = sigmaAt(v_uv);
   for (int i = -12; i <= 12; i++) {
     float fi = float(i);
     float w = exp(-fi * fi / 32.0);           // exp(−(i·σ/4)²/(2σ²)), σ-free
 
     // Probe with the center σ, then refine with the σ found there.
-    vec2 probe = v_uv + u_dir * u_texel * (fi * sigmaAt(v_uv) / 4.0);
+    vec2 probe = v_uv + u_dir * u_texel * (fi * centerSigma / 4.0);
     float s = sigmaAt(probe);
     vec2 tap = v_uv + u_dir * u_texel * (fi * s / 4.0);
 
