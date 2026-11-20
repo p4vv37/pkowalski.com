@@ -1,0 +1,61 @@
+---
+title: "Fun project: Baby vision simulator"
+slug: "baby-vision"
+date: "2026-11-20"
+description: "Try a small WebGL experiment about how detail, contrast, and color develop in the first year of life."
+image: "/images/baby-vision/demo.jpg"
+lang: "en"
+tags: ["Vision Science", "WebGL", "Fun Project"]
+draft: false
+---
+
+import BabyVisionSimulator from '../../components/BabyVisionSimulator.astro'
+import { SOURCES } from '../../lib/baby-vision/sources'
+
+I was curious how my newborn daughter, Klara, experiences the world. So I vibe-coded this simulator. Try the demo image or turn on your camera, then move the age slider to see what changes. In birth date mode, the default is Klara's birthday.
+
+<BabyVisionSimulator />
+
+## What the simulator shows
+
+This is not a literal view through child’s eyes. I’m changing a camera image so an adult can get a feel for which fine details, weak contrasts, and color differences might be easier or harder for a baby to pick up. The studies measure what babies can detect or distinguish under specific conditions, not what the world looks like to them.
+
+The stripe number sets the strength of a Gaussian blur. The lower the number, the more the filter softens fine patterns. It does not erase detail at an exact cutoff. Real infant vision depends on how the eye focuses light, how the retina responds, and how the developing brain processes those signals. A filter on an adult’s screen can illustrate some of those limits without recreating the experience.
+
+## A few ages to try
+
+- **Week 0.** Start here and hold the compare button. The blur starts from a newborn median of about **0.8 cycles per degree** in a looking test with black and white stripes. The filter also tones down contrast and color, but the image is not black and white.
+- **Around week 4.** Try moving the focus point from a hand to a face. In the model, focus moves only part of the way toward the new target. At week 0, moving the point does not change the focus plane at all.
+- **Around weeks 8 to 13.** Blue-yellow differences become more visible in the demo. By week 13, the model is at about **3 cycles per degree**, so more of the fine detail comes through.
+- **Week 52.** The model is at about **9 cycles per degree**. There is still a difference when you compare it with the unfiltered image.
+
+The slider interpolates between age points. These are useful stops to try, not week-by-week measurements or milestones for an individual child. The optional focus effect estimates which parts of the scene are nearer or farther. It does not measure their distance from the camera. The demo image was generated with Gemini.
+
+## How I limited color
+
+In one study, more newborns picked out a large, saturated red patch against gray than picked out blue under the same test conditions. That does not mean newborns see only red, or that the study tells us how saturated a red object looks to them.
+
+In the shader, I separate brightness from two color differences: red versus green and blue versus yellow. At birth, I keep just **15%** of the first difference and **2%** of the second, before applying a separate saturation adjustment. As you move the slider, the red-green difference comes back sooner. The blue-yellow difference rises more gradually and reaches its full setting at about 12 weeks, with some overall desaturation still applied. Those percentages are my filter settings, not measurements of what babies see. The contrast filter is also an interpretation: a threshold for detecting a test pattern does not tell you how much to dim the contrast of a whole image.
+
+<details>
+  <summary>Sources and what I used them for</summary>
+  <ul>
+    {[
+      ['brown2018', 'The newborn starting points for grating acuity (0.783 cycles per degree) and low-frequency contrast detection (about 46% in that experiment).'],
+      ['neijzen2025', 'The binocular grating acuity points from 1 to 12 months, calculated from the fitted reference ranges in Appendix A.'],
+      ['norcia1990', 'The early low-frequency contrast thresholds (about 7% at 2 to 3 weeks and 0.5% around week 9), plus a separate adult reference. These electrical-response measurements use a different method from Brown’s looking test.'],
+      ['adams1994', 'Evidence that newborns can distinguish some saturated colors from gray, with red detected more often than blue in this task. This informed the starting color balance, not the shader percentages.'],
+      ['varner1985', 'The improvement in blue-yellow discrimination between the first and second months, which informed the slower color ramp.'],
+      ['skelton2022', 'The broader timeline for both color mechanisms to be active by about 3 months, and evidence that saturation discrimination keeps developing. Neither gives a saturation slider value.'],
+      ['haynes1965', 'The measured median focus distance of 19 cm in alert newborns, used as the starting focus plane in the model.'],
+      ['banks1980', 'How strongly focus responds to a change in target distance at 1 to 3 months, and the early pupil sizes used in the blur calculation.'],
+      ['braddick1979', 'Evidence of more consistent focusing at the tested distance later in infancy. The model’s full response at about 6 months is a simplification, not a measured universal value.'],
+      ['isenberg1989', 'Newborn pupil size, used to set the starting strength of optical defocus.'],
+      ['macLachlan2002', 'Pupil-size reference data used for the later infancy setting.'],
+      ['green1980', 'The optical relationship between pupil diameter, focus error, and the angular size of the blur circle. The shader uses a Gaussian approximation of that circle.'],
+    ].map(([id, use]) => {
+      const source = SOURCES[id]
+      return <li><a href={source.url}>{source.citation.replaceAll('\u2014', '-').replaceAll('\u003B', ', ')}</a> - {use}</li>
+    })}
+  </ul>
+</details>
