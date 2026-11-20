@@ -27,15 +27,15 @@ const approx = (actual, expected, tol) => Math.abs(actual - expected) <= tol;
 const mo = (m) => (m * MAX_WEEKS) / 12;
 
 const ALL_ANCHORS = [
-  ['acuity', ACUITY_ANCHORS],
-  ['contrast', CONTRAST_ANCHORS],
-  ['red-green', RED_GREEN_GAIN_ANCHORS],
-  ['blue-yellow', BLUE_YELLOW_GAIN_ANCHORS],
-  ['saturation', SATURATION_ANCHORS],
+  { name: 'acuity', anchors: ACUITY_ANCHORS },
+  { name: 'contrast', anchors: CONTRAST_ANCHORS },
+  { name: 'red-green', anchors: RED_GREEN_GAIN_ANCHORS },
+  { name: 'blue-yellow', anchors: BLUE_YELLOW_GAIN_ANCHORS },
+  { name: 'saturation', anchors: SATURATION_ANCHORS },
 ];
 
 test('receipts: every anchor cites a registered source', () => {
-  for (const [name, anchors] of ALL_ANCHORS) {
+  for (const { name, anchors } of ALL_ANCHORS) {
     for (const anchor of anchors) {
       assert.ok(
         SOURCES[anchor.sourceId],
@@ -46,7 +46,7 @@ test('receipts: every anchor cites a registered source', () => {
 });
 
 test('anchors are age-sorted and strictly positive', () => {
-  for (const [name, anchors] of ALL_ANCHORS) {
+  for (const { name, anchors } of ALL_ANCHORS) {
     for (let i = 0; i < anchors.length; i++) {
       assert.ok(anchors[i].weeks >= 0 && anchors[i].value > 0, `${name} anchor ${i} invalid`);
       if (i > 0) assert.ok(anchors[i].weeks > anchors[i - 1].weeks, `${name} anchors out of order`);

@@ -1,0 +1,38 @@
+---
+title: "Fun Project: Baby Vision Simulator"
+slug: "baby-vision"
+date: "2026-11-20"
+description: "A browser simulator of what my newborn daughter sees, week by week — research-grounded blur, contrast, and color, live from your camera."
+image: "/images/baby-vision/mona-lisa.jpg"
+lang: "en"
+tags: ["Vision Science", "WebGL", "Fun Project"]
+draft: false
+---
+
+import BabyVisionSimulator from '../../components/BabyVisionSimulator.astro';
+import { SOURCES } from '../../lib/baby-vision/sources';
+
+I was curious how my newborn daughter, Klara, experiences the world. So I vibe-coded this simulator: point your camera at anything — or use the Mona Lisa — and drag through her first year.
+
+<BabyVisionSimulator />
+
+At birth, Klara resolves about 0.8 cycles per degree — roughly 20/770 — and needs about 150× more contrast than an adult to see anything at all ([Brown 2018](https://europepmc.org/articles/PMC6016435)). Her world is nearly grayscale, with one exception worth knowing: saturated red is the one color a majority of newborns can reliably pick out ([Adams 1994](https://doi.org/10.1016/0042-6989(94)90127-9)). By three months she should be fully trichromatic ([Skelton 2022](https://doi.org/10.1111/cdep.12447)), and by her first birthday her acuity will still be a long way from adult — that takes years — but the steepest part of the curve will be behind her ([Neijzen 2025](https://europepmc.org/articles/PMC12069961)).
+
+This is an approximation, not an oracle. Grating acuity is not letter acuity; a real baby also scans with eye movements, strongly prefers faces, and starts with a visual field only about 30° wide. Two judgment calls had to be made — how a contrast *threshold* turns into a rendered image, and how cycles per degree become pixels on *your* screen (that is what the viewing-distance setting is about) — and both are written down as decision records in `docs/adr/` in the [repo](https://github.com/p4vv37/pkowalski.com), next to the anchor tables. Every number in the model cites its study below, and a unit test fails if one doesn't. The camera feed never leaves your device.
+
+Fun fact: if you feed a self-supervised vision model the same curriculum Klara is running — blurry before sharp, gray before color — it grows up *more* robust than one trained on adult-quality images from the start ([Cai 2026](https://arxiv.org/abs/2511.14440)). Her visual diet is the original one.
+
+The demo image is Leonardo's *Mona Lisa* (public domain; scan via Wikimedia Commons).
+
+## Sources
+
+Every parameter in the simulator traces to one of these:
+
+<ul class="bvs-sourceList">
+  {Object.values(SOURCES).map((source) => (
+    <li key={source.id}>
+      <a href={source.url}>{source.citation}</a>
+      <span> — {source.usedFor}</span>
+    </li>
+  ))}
+</ul>
