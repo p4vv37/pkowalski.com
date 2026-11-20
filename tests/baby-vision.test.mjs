@@ -7,6 +7,10 @@ import {
   RED_GREEN_GAIN_ANCHORS,
   BLUE_YELLOW_GAIN_ANCHORS,
   SATURATION_ANCHORS,
+  ACCOMMODATION_GAIN_ANCHORS,
+  PUPIL_ANCHORS,
+  effectiveFocusDiopters,
+  pupilMm,
   interpolate,
   visionParamsAtWeeks,
   weeksSince,
@@ -21,6 +25,7 @@ import {
   defocusSigmaDeg,
   defocusSigmaPx,
   combineSigma,
+  diopterScale,
 } from '../src/lib/baby-vision/render.ts';
 
 const approx = (actual, expected, tol) => Math.abs(actual - expected) <= tol;
@@ -87,7 +92,7 @@ test('interpolation is log-linear between acuity anchors', () => {
   assert.ok(approx(interpolate(ACUITY_ANCHORS, midWeeks, 'log').value, expected, 1e-9));
 });
 
-test('contrast threshold never rises: 46% at birth, adult level from 13 weeks', () => {
+test('contrast threshold never rises: 46% at birth, holds at the low-frequency asymptote', () => {
   let prev = Infinity;
   for (let w = 0; w <= MAX_WEEKS; w += 0.25) {
     const p = visionParamsAtWeeks(w);
@@ -97,10 +102,10 @@ test('contrast threshold never rises: 46% at birth, adult level from 13 weeks', 
   assert.ok(approx(visionParamsAtWeeks(9).contrastThreshold, 0.005, 1e-9));
 });
 
-test('contrast gain: ~8% at birth, unity from 13 weeks on', () => {
+test('contrast gain: ~8% at birth, held low-frequency asymptote', () => {
   assert.ok(approx(visionParamsAtWeeks(0).contrastGain, Math.sqrt(0.003 / 0.46), 1e-9));
-  assert.equal(visionParamsAtWeeks(13).contrastGain, 1);
-  assert.equal(visionParamsAtWeeks(52).contrastGain, 1);
+  assert.ok(approx(visionParamsAtWeeks(13).contrastGain, Math.sqrt(0.003 / 0.005), 1e-9));
+  assert.equal(visionParamsAtWeeks(52).contrastGain, visionParamsAtWeeks(9).contrastGain);
 });
 
 test('color: muted red at week 0, trichromatic by 12 weeks, monotone gains', () => {
@@ -161,10 +166,10 @@ test('render: 60 cm object with focus at 30 cm is 5/3 diopters out', () => {
   assert.ok(approx(defocusDiopters(60, 30), 5 / 3, 1e-9));
 });
 
-test('render: 3 D defocus through a 3 mm pupil gives sigma ≈ 0.164 deg', () => {
-  const expected = (180 * 0.009) / (Math.PI * Math.PI);
+test('render: 3 D defocus through a 3 mm pupil gives sigma ≈ 0.129 deg', () => {
+  const expected = (180 * 0.009) / (4 * Math.PI);
   assert.ok(approx(defocusSigmaDeg(3, 3), expected, 1e-12));
-  assert.ok(approx(defocusSigmaDeg(3, 3), 0.164, 0.001));
+  assert.ok(approx(defocusSigmaDeg(3, 3), 0.129, 0.001));
   assert.equal(defocusSigmaDeg(0, 3), 0);
   assert.ok(approx(defocusSigmaPx(3, 3, 33), defocusSigmaDeg(3, 3) * 33, 1e-12));
 });
@@ -180,4 +185,24 @@ test('physics sanity: blur regime shifts from neural- to focus-dominated', () =>
   const distantObject = defocusSigmaPx(defocusDiopters(300, 30), 3, px); // 3 m away, focus 30 cm, 3 mm pupil
   assert.ok(newbornNeural > distantObject, 'newborn blur is dominated by neural acuity limits');
   assert.ok(sixMonthNeural < distantObject, 'by 6 months, optical defocus of distant objects dominates');
+});
+
+
+test('accommodation and pupil anchors cite sources', () => {
+  for (const anchor of [...ACCOMMODATION_GAIN_ANCHORS, ...PUPIL_ANCHORS]) {
+    assert.ok(SOURCES[anchor.sourceId]);
+  }
+});
+
+test('experimental focus starts fixed and converges on the assumed target', () => {
+  assert.equal(effectiveFocusDiopters(0, 30), effectiveFocusDiopters(0, 100));
+  assert.ok(approx(effectiveFocusDiopters(26, 30), 100 / 30, 1e-9));
+  assert.equal(pupilMm(0), 3.7);
+});
+
+test('relative inverse-depth calibration preserves both assumed planes', () => {
+  const target = 100 / 30;
+  const scale = diopterScale(30, 300, 0.8, 0.1);
+  assert.ok(scale > 0);
+  assert.ok(approx(target + scale * (0.1 - 0.8), 100 / 300, 1e-9));
 });

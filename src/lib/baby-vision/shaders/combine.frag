@@ -12,8 +12,8 @@ precision highp float;
 //      modulation around the frame's mean luminance by
 //      gain = (T_adult / T_infant)^0.5 — a deliberately compressive map
 //      (documented in ADR 0001): a linear map would render week 0 as
-//      featureless fog, and suprathreshold vision compresses threshold
-//      differences anyway (contrast constancy).
+//      featureless fog, this exponent is a visualization choice, not an estimated
+//      suprathreshold appearance curve.
 //
 //      Mean luminance is measured per frame on the host from the source
 //      mipmap — no magic constant.
