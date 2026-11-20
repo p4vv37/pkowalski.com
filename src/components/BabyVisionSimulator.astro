@@ -14,7 +14,8 @@
 <section class="bvs" id="baby-vision-simulator">
   <div class="bvs-stage">
     <img class="bvs-canvas" data-bvs-static src="/images/baby-vision/demo.jpg" alt="Unfiltered demo image" hidden>
-    <canvas class="bvs-canvas" aria-label="Camera or demo image, filtered to approximate infant vision at the selected age"></canvas>
+    <canvas class="bvs-canvas" tabindex="0" aria-describedby="bvs-focus-help" aria-label="Camera or demo image, filtered to approximate infant vision at the selected age"></canvas>
+    <span class="bvs-focus" data-bvs-focus aria-hidden="true" hidden></span>
     <p class="bvs-message" data-bvs-message hidden></p>
     <button class="bvs-compare" type="button" data-bvs-compare disabled>Hold to compare with original</button>
   </div>
@@ -44,6 +45,11 @@
     </div>
 
     <dl class="bvs-readout" data-bvs-readout></dl>
+    <details>
+      <summary>What do these numbers mean?</summary>
+      <p class="bvs-hint">Fine detail, also called visual acuity, is how tightly black and white stripes can be packed before they blend together. One stripe pair is one black stripe and one white stripe. A degree is a measure of how much of your view the pattern takes up, not how big it is in pixels. The simulator uses this number to set the strength of a blur: fewer stripe pairs means more blur.</p>
+      <p class="bvs-hint">The contrast threshold describes how different the light and dark stripes in a broad pattern need to be before the pattern is detectable. This estimate combines two types of experiments: one observed where newborns looked, the other measured the brain’s electrical response. The percentage is not a slider for how much contrast the picture keeps.</p>
+    </details>
 
     <div class="bvs-actions" role="group" aria-label="Image source">
       <button class="bvs-action" type="button" data-bvs-source="image">Demo image</button>
@@ -52,19 +58,7 @@
       <button class="bvs-action" type="button" data-bvs-depth aria-pressed="false" title="Experimental. Relative depth uses assumed distances. Camera mode downloads a model on request.">Depth-aware focus</button>
     </div>
 
-    <details class="bvs-advanced">
-      <summary>Viewing distance</summary>
-      <div class="bvs-sliderRow">
-        <input id="bvs-distance" type="range" min="25" max="100" step="1" value="55" aria-label="Viewing distance in centimeters" data-bvs-distance>
-        <output class="mono" for="bvs-distance" data-bvs-distance-out></output>
-      </div>
-      <p class="bvs-hint">
-        Acuity is measured in cycles per degree of visual angle, so turning it into
-        on-screen blur must assume how far you sit from the display. The default follows
-        your device (≈35&nbsp;cm for a phone, ≈55&nbsp;cm for a desktop) and the screen is
-        assumed to render 96 CSS pixels per inch.
-      </p>
-    </details>
+    <p class="bvs-hint" id="bvs-focus-help">Click or tap the image to move the focus point. With the preview selected, use the arrow keys. Newborn focus barely follows the target. Camera focus requires enabling Depth-aware focus.</p>
   </div>
 </section>
 
@@ -96,7 +90,7 @@
   const root = required(document.querySelector('.bvs'), 'root section');
   const $ = <T extends Element>(sel: string) => required<T>(root.querySelector(sel), sel);
 
-  const canvas = $<HTMLCanvasElement>('.bvs-canvas');
+  const canvas = $<HTMLCanvasElement>('canvas.bvs-canvas');
   const message = $<HTMLElement>('[data-bvs-message]');
   const compareBtn = $<HTMLButtonElement>('[data-bvs-compare]');
 
@@ -417,6 +411,7 @@
   function setSource(kind: SourceKind) {
     clearMessage();
     state.source = kind;
+    focusPoint = null;
     root.querySelectorAll<HTMLButtonElement>('[data-bvs-source]').forEach((btn) => {
       btn.classList.toggle('is-active', btn.dataset.bvsSource === kind);
     });
@@ -439,6 +434,12 @@
   // Focus/pupil parameters come from the accommodation anchors in model.ts.
   // -----------------------------------------------------------------------
 
+  type DepthSamples = { data: ArrayLike<number>; width: number; height: number };
+  let demoSamples: DepthSamples | null = null;
+  let cameraSamples: DepthSamples | null = null;
+  let focusPoint: { x: number; y: number } | null = null;
+  const marker = $<HTMLElement>('[data-bvs-focus]');
+
   let demoDepthStats: { dFocus: number; dFar: number } | null = null;
   let cameraDepthReady = false;
   let cameraDepthStats: { dFocus: number; dFar: number } | null = null;
@@ -460,6 +461,7 @@
       ctx.drawImage(img, 0, 0, 64, 64);
       const rgba = ctx.getImageData(0, 0, 64, 64).data;
       const values = rgba.filter((_, i) => i % 4 === 0);
+      demoSamples = { data: values, width: 64, height: 64 };
       demoDepthStats = depthStatsFromValues(values, values.length);
       renderer?.uploadDepth(img);
       dirty = true;
@@ -526,6 +528,7 @@
       // A flat map (subject ≈ background) carries no focus signal — skip.
       if (stats && stats.dFocus - stats.dFar >= 0.05) {
         renderer?.uploadDepth(depthCanvas);
+        cameraSamples = depth;
         cameraDepthStats = stats;
         cameraDepthReady = true;
         dirty = true;
@@ -551,12 +554,22 @@
     const stats = currentDepthStats();
     if (!stats || stats.dFocus - stats.dFar < 0.05) return {};
     const weeks = currentWeeks();
-    const focus = effectiveFocusDiopters(weeks, SUBJECT_CM);
+    const samples = state.source === 'image' ? demoSamples : cameraSamples;
+    const scale = diopterScale(SUBJECT_CM, FAR_CM, stats.dFocus, stats.dFar);
+    let targetCm = SUBJECT_CM;
+    if (samples && focusPoint) {
+      const x = Math.min(samples.width - 1, Math.floor(focusPoint.x * samples.width));
+      const y = Math.min(samples.height - 1, Math.floor(focusPoint.y * samples.height));
+      const disparity = samples.data[y * samples.width + x] / 255;
+      const demand = 100 / SUBJECT_CM + scale * (disparity - stats.dFocus);
+      targetCm = 100 / Math.max(100 / FAR_CM, demand);
+    }
+    const focus = effectiveFocusDiopters(weeks, targetCm);
     return {
       hasDepth: true,
       focusDepth: stats.dFocus,
       focusOffset: focus - 100 / SUBJECT_CM,
-      diopterScale: diopterScale(SUBJECT_CM, FAR_CM, stats.dFocus, stats.dFar),
+      diopterScale: scale,
       defocusPxPerDiopter: defocusSigmaPx(1, pupilMm(weeks), canvasPxPerDegree()),
     };
   }
@@ -586,8 +599,8 @@
     const p = visionParamsAtWeeks(weeks);
     const rows: Array<[string, string]> = [
       ['Age', `${ageLabel(p.weeks)} (week ${p.weeks.toFixed(1)} of ${MAX_WEEKS})`],
-      ['Visual acuity', `≈ ${p.acuityCpd.toFixed(1)} cycles/degree (≈ 20/${Math.round(p.snellen)})`],
-      ['Contrast', `Low-frequency model: ${+(100 * p.contrastThreshold).toPrecision(2)}% threshold (different study methods)`],
+      ['Fine detail', `≈ ${p.acuityCpd.toFixed(1)} stripe pairs per degree of vision. More pairs means finer detail.`],
+      ['Contrast for broad stripes', `≈ ${+(100 * p.contrastThreshold).toPrecision(2)}% estimated detection threshold. Lower means fainter stripes are easier to notice.`],
       ['Color', describeColor(p)],
     ];
     readout.innerHTML = rows
@@ -603,10 +616,47 @@
     return state.mode === 'age' ? state.weeks : weeksSince(state.birthdate);
   }
 
+  // Match the visible image, excluding any letterbox from object-fit: contain.
+  function imageRect() {
+    const box = canvas.getBoundingClientRect();
+    const scale = Math.min(box.width / canvas.width, box.height / canvas.height);
+    const width = canvas.width * scale, height = canvas.height * scale;
+    return { left: box.left + (box.width - width) / 2, top: box.top + (box.height - height) / 2, width, height };
+  }
+
+  function updateFocusMarker() {
+    marker.hidden = !focusPoint || !currentDepthStats() || state.compare;
+    if (!focusPoint || marker.hidden) return;
+    const box = imageRect();
+    const stage = $<HTMLElement>('.bvs-stage').getBoundingClientRect();
+    marker.style.left = `${box.left - stage.left + focusPoint.x * box.width}px`;
+    marker.style.top = `${box.top - stage.top + focusPoint.y * box.height}px`;
+  }
+
+  function aim(x: number, y: number) {
+    focusPoint = { x: Math.min(1, Math.max(0, x)), y: Math.min(1, Math.max(0, y)) };
+    dirty = true;
+  }
+
+  canvas.addEventListener('click', (event) => {
+    if (!currentDepthStats()) return;
+    const box = imageRect();
+    const x = (event.clientX - box.left) / box.width, y = (event.clientY - box.top) / box.height;
+    if (x >= 0 && x <= 1 && y >= 0 && y <= 1) aim(x, y);
+  });
+  canvas.addEventListener('keydown', (event) => {
+    if (!currentDepthStats() || !event.key.startsWith('Arrow')) return;
+    event.preventDefault();
+    const { x, y } = focusPoint ?? { x: 0.5, y: 0.5 };
+    aim(x + (Number(event.key === 'ArrowRight') - Number(event.key === 'ArrowLeft')) * 0.03,
+        y + (Number(event.key === 'ArrowDown') - Number(event.key === 'ArrowUp')) * 0.03);
+  });
+
   function canvasPxPerDegree(): number {
     // σ in CSS pixels from visual angle, then scaled into texture pixels
     // (the canvas may render at a different resolution than its CSS size).
-    const scale = canvas.clientWidth > 0 ? canvas.width / canvas.clientWidth : 1;
+    const visibleWidth = imageRect().width;
+    const scale = visibleWidth > 0 ? canvas.width / visibleWidth : 1;
     return pxPerDegree(state.viewingDistanceCm) * scale;
   }
 
@@ -628,6 +678,7 @@
       }
     }
     if (dirty) {
+      updateFocusMarker();
       const p = visionParamsAtWeeks(currentWeeks());
       renderer?.render({
         neuralSigmaPx: neuralSigmaCanvasPx(),
@@ -652,8 +703,7 @@
   const ageOut = $<HTMLElement>('[data-bvs-age-out]');
   const dateInput = $<HTMLInputElement>('[data-bvs-birthdate]');
   const dateOut = $<HTMLElement>('[data-bvs-date-out]');
-  const distanceInput = $<HTMLInputElement>('[data-bvs-distance]');
-  const distanceOut = $<HTMLElement>('[data-bvs-distance-out]');
+
 
   function setMode(mode: 'age' | 'birthdate') {
     state.mode = mode;
@@ -687,13 +737,7 @@
     if (dateInput.value) localStorage.setItem(STORAGE_KEY, dateInput.value);
     refresh();
   });
-  distanceInput.value = String(state.viewingDistanceCm);
-  distanceOut.textContent = `${state.viewingDistanceCm} cm`;
-  distanceInput.addEventListener('input', () => {
-    state.viewingDistanceCm = Number(distanceInput.value);
-    distanceOut.textContent = `${state.viewingDistanceCm} cm`;
-    dirty = true;
-  });
+
 
   root.querySelectorAll<HTMLButtonElement>('[data-bvs-source]').forEach((btn) => {
     btn.addEventListener('click', () => setSource(btn.dataset.bvsSource as SourceKind));
@@ -787,6 +831,16 @@
     border-radius: 10px;
     overflow: hidden;
     background: var(--panel);
+  }
+  .bvs-focus {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border: 2px solid white;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px #111;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
   }
   .bvs-stage {
     position: relative;
