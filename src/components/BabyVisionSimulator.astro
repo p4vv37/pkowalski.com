@@ -815,7 +815,12 @@
   }
   setMode('birthdate');
   if (renderer) {
-    setSource('image');
+    if (typeof navigator.mediaDevices?.getUserMedia === 'function') {
+      setSource('camera');
+      showMessage('Waiting for camera access. You can use the demo image instead.');
+    } else {
+      setSource('image');
+    }
     requestAnimationFrame(frame);
   } else {
     canvas.hidden = true;
