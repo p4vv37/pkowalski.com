@@ -11,8 +11,11 @@ for (const [filename, anchor, heading] of articles) {
   const source = readFileSync(new URL('../src/content/posts/' + filename, import.meta.url), 'utf8');
   const body = source.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '');
 
-  test(`${filename}: the article starts with its original first section, not an update note`, () => {
-    assert.match(body.trimStart(), /^## 1\. /);
+  test(`${filename}: the Domuno update precedes the original first section`, () => {
+    const [notice, firstSection] = body.trimStart().split(/\r?\n\r?\n/, 2);
+    assert.match(notice, /^\*\*(?:Aktualizacja|Update).*Domuno\.\*\*/);
+    assert.match(notice, /https:\/\/github\.com\/p4vv37\/domuno#readme/);
+    assert.match(firstSection, /^## 1\. /);
     assert.doesNotMatch(body, /\bEdit\b/, 'update notes must not be called "Edit"');
   });
 
@@ -20,7 +23,7 @@ for (const [filename, anchor, heading] of articles) {
     const sections = [...body.matchAll(/^## (.+)$/gm)].map((match) => match[1]);
     assert.equal(sections.length, 9);
     assert.ok(sections.at(-1).startsWith(`<span id="${anchor}"></span>${heading} 17`), sections.at(-1));
-    assert.match(source, /^updated: "2026-11-17"$/m);
+    assert.match(source, /^updated: "2026-11-25"$/m);
     assert.match(source, /^updateSummary: ".+"$/m);
   });
 }
