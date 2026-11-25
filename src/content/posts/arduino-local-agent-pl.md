@@ -2,8 +2,8 @@
 title: "Lokalny agent Home Assistant na Arduino VENTUNO Q"
 slug: "lokalny-agent-home-assistant-arduino-ventuno-q"
 date: "2026-11-15"
-updated: "2026-11-17"
-updateSummary: "Po aktualizacji GenieX do 0.11.0 Qwen korzysta z KV cache. Prefill kontekstu 3164 tokenów spadł z 6,82 s do 0,06 s, a całe żądanie było około 24 razy szybsze."
+updated: "2026-11-25"
+updateSummary: "Projekt zmienił nazwę na Domuno. Kod i instrukcja instalacji są dostępne na GitHubie."
 description: "Whisper Large-v3-Turbo i Qwen na NPU, polski Pocket TTS na CPU Arduino VENTUNO Q. Lokalny asystent Home Assistant, pomiary i granice dotychczasowych testów."
 image: "/images/arduino-local-agent/ha-context-before-after.png"
 lang: "pl"
@@ -12,6 +12,8 @@ translationListing: "combined"
 tags: ["Home Assistant", "Arduino", "NPU", "SLM", "AI", "Whisper"]
 draft: false
 ---
+
+**Aktualizacja — 25.11.2026: projekt nazywa się teraz Domuno.** Kod i instrukcję instalacji znajdziesz w [repozytorium Domuno na GitHubie](https://github.com/p4vv37/domuno#readme). W wersji 0.2.0 doszły opcjonalne wyszukiwanie przez Brave oraz aktualna pogoda i prognoza z Open‑Meteo. Modele nadal działają lokalnie; z internetem łączą się tylko opcjonalne narzędzia.
 
 ## 1. Od benchmarku do asystenta
 
